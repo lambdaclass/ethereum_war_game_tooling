@@ -6,7 +6,7 @@ Install dependencies with
 make init
 ```
 after that you have to do "source" with the path of your prefered shell, for example in the case of zsh or bash 
-"source /home/{YOUR_USER}/.zshrc" or "source /home/{YOUR_USER}/.zshrc". Then you can execute "foundryup" to install forge.
+"source /home/{YOUR_USER}/.zshrc" or "source /home/{YOUR_USER}/.bshrc". Then you can execute "foundryup" to install forge.
 
 
 On a separate terminal tab
