@@ -1,3 +1,5 @@
+# Ethereum Playground
+
 Install dependencies with
 
 ```
