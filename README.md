@@ -48,7 +48,7 @@ You can also send a transaction to call the `store` function
 cast send 0xb581c9264f59bf0289fa76d61b2d0746dce3c30d --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 "store(uint256)" 5 --rpc-url http://localhost:8545
 ```
 
-where the first address is the contract's address and the private key needs to have some funds to pay for the transaction. Output should look like this
+where the first address is the contract's address and the private key needs to have some funds to pay for the transaction (for this you can use one of the accounts outputted when running `make eth_node`). Output should look like this
 
 ```
 blockHash            "0xd2f9afae4ef28c63ceccd7575c4370c17ead74448567ca651ec82a7051434e01"
