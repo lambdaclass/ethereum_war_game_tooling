@@ -36,7 +36,7 @@ Take note of the address you are given after `Deployed to:`, as that is the cont
 With it, you can now call its test function using `cast` like this:
 
 ```
-cast call 0xb581c9264f59bf0289fa76d61b2d0746dce3c30d "test_function()(uint256)" --rpc-url http://localhost:8545
+cast call <contract_address> "test_function()(uint256)" --rpc-url http://localhost:8545
 ```
 
 which should return `1`.
@@ -45,10 +45,10 @@ which should return `1`.
 You can also send a transaction to call the `store` function
 
 ```
-cast send 0xb581c9264f59bf0289fa76d61b2d0746dce3c30d --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 "store(uint256)" 5 --rpc-url http://localhost:8545
+cast send <contract_address> --private-key <private_key> "store(uint256)" 5 --rpc-url http://localhost:8545
 ```
 
-where the first address is the contract's address and the private key needs to have some funds to pay for the transaction (for this you can use one of the accounts outputted when running `make eth_node`). Output should look like this
+where the private key needs to have some funds to pay for the transaction (for this you can use one of the accounts outputted when running `make eth_node`). Output should look like this
 
 ```
 blockHash            "0xd2f9afae4ef28c63ceccd7575c4370c17ead74448567ca651ec82a7051434e01"
@@ -69,6 +69,6 @@ type                 "0x2"
 After storing a number, you can retrieve it with
 
 ```
-cast call 0xb581c9264f59bf0289fa76d61b2d0746dce3c30d "retrieve()(uint256)" --rpc-url http://localhost:8545
+cast call <contract_address> "retrieve()(uint256)" --rpc-url http://localhost:8545
 ```
 
