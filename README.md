@@ -16,6 +16,8 @@ Then deploy the test contract with
 make deploy_test_contract
 ```
 
+The code for this contract is in in `contracts/src/Storage.sol`; it has 3 functions: `test_function` will always return `1`, `store(uint256)` stores the given number and `retrieve()` returns said number.
+
 The output should look like this
 
 ```
