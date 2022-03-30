@@ -5,8 +5,8 @@ Install dependencies with
 ```
 make init
 ```
-after that you have to do "source" with the path of your prefered shell, for example in the case of zsh or bash 
-"source /home/{YOUR_USER}/.zshrc" or "source /home/{YOUR_USER}/.bshrc". Then you can execute "foundryup" to install forge.
+
+then source your `.bashrc`, `.zshrc` or similar files to add foundry to your `PATH`, then run `foundryup` to install `forge` and `cast`.
 
 
 On a separate terminal tab
