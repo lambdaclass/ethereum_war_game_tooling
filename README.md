@@ -5,23 +5,26 @@ Install dependencies with
 ```
 make init
 ```
-after that you have to do "source" with the path of your prefered shell, for example in the case of zsh or bash 
-"source /home/{YOUR_USER}/.zshrc" or "source /home/{YOUR_USER}/.bshrc". Then you can execute "foundryup" to install forge.
 
+then source your `.bashrc`, `.zshrc` or similar file to add foundry to your `PATH`, then run `foundryup` to install `forge` and `cast`.
 
-On a separate terminal tab
+To run two local Ethereum nodes:
 
 ```
-make eth_node
+cd geth_nodes
+make setup
+make up
 ```
 
-Then deploy the test contract with
+You can hen deploy the test contract with
 
 ```
 make deploy_test_contract
 ```
 
-The code for this contract is in in `contracts/src/Storage.sol`; it has 3 functions: `test_function` will always return `1`, `store(uint256)` stores the given number and `retrieve()` returns said number.
+under the root directory.
+
+The code for this contract is in `contracts/src/Storage.sol`; it has 3 functions: `test_function` will always return `1`, `store(uint256)` stores the given number and `retrieve()` returns said number.
 
 The output should look like this
 

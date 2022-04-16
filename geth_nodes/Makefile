@@ -14,6 +14,3 @@ node1_attach:
 
 node2_attach:
 	(cd ./private_network/node2 && geth attach ipc:geth.ipc)
-
-deploy_test_contract:
-	forge create --rpc-url http://127.0.0.1:8545 Storage --root contracts/ --private-key e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c
