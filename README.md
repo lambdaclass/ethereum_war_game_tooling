@@ -6,7 +6,7 @@ Install dependencies with
 make init
 ```
 
-then source your `.bashrc`, `.zshrc` or similar file to add foundry to your `PATH`, then run `foundryup` to install `forge` and `cast`.
+then source your `.bashrc`, `.zshrc` or similar files to add foundry to your `PATH`, then run `foundryup` to install `forge` and `cast`.
 
 To run two local Ethereum nodes:
 
@@ -16,7 +16,7 @@ make setup
 make up
 ```
 
-You can hen deploy the test contract with
+You can then deploy the test contract with
 
 ```
 make deploy_test_contract
