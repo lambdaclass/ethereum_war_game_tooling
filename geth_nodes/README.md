@@ -8,20 +8,28 @@ To initialize all configuration for the two mining nodes we're going to spin, ru
 make setup
 ```
 
-When prompted, enter passwords for the two eth accounts that are created (I recommend empty passwords, as they don't really matter).
+## Accounts
 
-Take note of both accounts' addresses, which are going to be the `etherbase` accounts for our two nodes (an etherbase account is the account where the eth gained from mining goes).
+Node 1 miner account:
+
+- Address: `0xafb72ccaeb7e22c8a7640f605824b0898424b3da`
+- Private key: `e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c`
+
+Node 2 miner account:
+
+- Address: `0x77b648683cde1d69544ed6f4f7204e8d51c324db`
+- Private key: `f71d3dd32649f9bdfc8e4a5232d3f245860243756f96fbe070c31fc44c9293f4`
 
 To run the nodes:
 
 ```
-make node1 ETHERBASE_1=<etherbase_account_1_address>
+make node1
 ```
 
 and on a separate tab
 
 ```
-make node2 ETHERBASE_1=<etherbase_account_2_address>
+make node2
 ```
 
 ## Attaching to the nodes
