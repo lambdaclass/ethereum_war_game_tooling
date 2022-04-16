@@ -10,7 +10,7 @@ clean:
 	rm -rf ./private_network
 
 node1_attach:
-	(cd ./private_network/node1 && geth attach ipc:geth.ipc)
+	docker exec -it geth_nodes-ethereum_node1-1 /bin/sh -c "geth attach /root/private_network/node1/geth.ipc"
 
 node2_attach:
-	(cd ./private_network/node2 && geth attach ipc:geth.ipc)
+	docker exec -it geth_nodes-ethereum_node2-1 /bin/sh -c "geth attach /root/private_network/node2/geth.ipc"
