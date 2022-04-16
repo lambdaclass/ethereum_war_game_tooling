@@ -8,20 +8,39 @@ make init
 
 then source your `.bashrc`, `.zshrc` or similar files to add foundry to your `PATH`, then run `foundryup` to install `forge` and `cast`.
 
-
-On a separate terminal tab
+To run two local Ethereum nodes:
 
 ```
-make eth_node
+cd geth_nodes
+make setup
+make up
 ```
 
-Then deploy the test contract with
+## Accounts
+You can use the miner accounts to pay for transactions.
+
+Node 1 miner account
+
+- Address: `0xafb72ccaeb7e22c8a7640f605824b0898424b3da`
+- Private key: `e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c`
+
+Node 2 miner account:
+
+- Address: `0x77b648683cde1d69544ed6f4f7204e8d51c324db`
+- Private key: `f71d3dd32649f9bdfc8e4a5232d3f245860243756f96fbe070c31fc44c9293f4`
+
+
+## Test contract
+
+You can then deploy the test contract with
 
 ```
 make deploy_test_contract
 ```
 
-The code for this contract is in in `contracts/src/Storage.sol`; it has 3 functions: `test_function` will always return `1`, `store(uint256)` stores the given number and `retrieve()` returns said number.
+under the root directory.
+
+The code for this contract is in `contracts/src/Storage.sol`; it has 3 functions: `test_function` will always return `1`, `store(uint256)` stores the given number and `retrieve()` returns said number.
 
 The output should look like this
 
@@ -53,7 +72,7 @@ You can also send a transaction to call the `store` function
 cast send <contract_address> --private-key <private_key> "store(uint256)" 5 --rpc-url http://localhost:8545
 ```
 
-where the private key needs to have some funds to pay for the transaction (for this you can use one of the accounts outputted when running `make eth_node`). Output should look like this
+where the private key needs to have some funds to pay for the transaction (for this you can use one of the miner accounts). Output should look like this
 
 ```
 blockHash            "0xd2f9afae4ef28c63ceccd7575c4370c17ead74448567ca651ec82a7051434e01"
@@ -76,4 +95,3 @@ After storing a number, you can retrieve it with
 ```
 cast call <contract_address> "retrieve()(uint256)" --rpc-url http://localhost:8545
 ```
-
