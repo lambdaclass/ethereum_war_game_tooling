@@ -24,3 +24,6 @@ eth_client-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Shared objects created by rustler
+*.so
