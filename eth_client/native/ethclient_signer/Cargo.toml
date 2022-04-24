@@ -1,0 +1,22 @@
+[package]
+name = "ethclient_signer"
+version = "0.1.0"
+authors = []
+edition = "2018"
+
+[lib]
+name = "ethclient_signer"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustler = "0.25.0"
+hex = "0.4.3"
+ethereum-types = "0.11.0"
+tiny-keccak = { version = "2.0", features = ["keccak"] }
+secp256k1 = { version = "0.20.3", features = ["recovery"] }
+rlp = "0.5"
+num-traits = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
