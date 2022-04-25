@@ -1,4 +1,4 @@
-# Ethereum War Game Tooling
+# Ethereum War Game and CTF Tooling
 
 ## EthClient
 
