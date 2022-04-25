@@ -29,7 +29,7 @@ Currently there are three functions in the `EthClient` module that form the main
 
 Currently, both `call` and `invoke` require the user to know the contract's method signatures; this will change soon when we start parsing the ABI of the contract and offer a better API.
 
-## Example
+### Example
 
 When running `iex -S mix`, there will be a default `bin_path` variable loaded with the path to a compiled `Storage` contract. You can then immediately deploy it with
 
@@ -64,8 +64,6 @@ iex(3)> EthClient.invoke("store(uint256)", [20], 0)
 iex(4)> EthClient.call("retrieve()", [])
 {:ok, "0x0000000000000000000000000000000000000000000000000000000000000014"}
 ```
-
-
 
 ## Local nodes
 Install dependencies with
