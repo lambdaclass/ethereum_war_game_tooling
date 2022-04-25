@@ -1,4 +1,4 @@
-# Ethereum Playground
+# Ethereum War Game Tooling
 
 Install dependencies with
 
