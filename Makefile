@@ -1,5 +1,8 @@
 .PHONY: init, deploy_test_contract
 
+nix-shell:
+	nix-shell
+
 init:
 	curl -L https://foundry.paradigm.xyz | bash
 	git submodule init
