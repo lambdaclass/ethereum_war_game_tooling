@@ -7,14 +7,14 @@ defmodule EthClient.ABI do
         url = "https://api.etherscan.io/api?module=contract&action=getabi&address=#{address}&apikey=#{api_key}"
 
         {:ok, rsp} = Tesla.get(url)
-        handle_response(rsp)
+        {:ok, result} = handle_response(rsp)
+        Jason.decode!(result)
     end
 
     defp handle_response(rsp) do
         case Jason.decode!(rsp.body) do
             %{"result" => result} ->
                 {:ok, result}
-                Jason.decode!(result)
 
             %{"error" => error} ->
                 {:error, error}
