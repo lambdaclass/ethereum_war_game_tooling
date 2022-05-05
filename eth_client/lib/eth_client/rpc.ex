@@ -25,6 +25,8 @@ defmodule EthClient.Rpc do
     wait_for_tx(tx_hash, nil, attempts)
   end
 
+  def get_balance(address), do: send_request("eth_getBalance", [address, "latest"])
+
   defp wait_for_tx(_tx_hash, nil, 0) do
     {:error, :transaction_not_mined}
   end

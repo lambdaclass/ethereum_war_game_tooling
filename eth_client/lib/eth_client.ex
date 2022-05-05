@@ -65,6 +65,15 @@ defmodule EthClient do
     |> Rpc.call()
   end
 
+  def get_balance(address) do
+    {balance, _lead} =
+      Rpc.get_balance(address)
+      |> remove_leading_0x()
+      |> Integer.parse(16)
+
+    wei_to_ether(balance)
+  end
+
   def invoke(method, arguments, amount) do
     data =
       ABI.encode(method, arguments)
@@ -136,6 +145,8 @@ defmodule EthClient do
 
   defp remove_leading_0x({:ok, "0x" <> data}), do: data
   defp add_0x(data), do: "0x" <> data
+
+  defp wei_to_ether(amount), do: amount / 1.0e19
 
   defp build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
     recipient = opts[:recipient]
