@@ -1,16 +1,16 @@
 defmodule EthClient do
   @moduledoc """
   """
-  alias EthClient.Rpc
   alias EthClient.Context
+  alias EthClient.Contract
   alias EthClient.RawTransaction
+  alias EthClient.Rpc
 
   require Logger
 
   # TODO:
   # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
   # View the state of a contract (all its variables, etc). This will require parsing the ABI
-  # Obtain the ABI of a deployed contract
   # Add the ability to check if a transaction is a contract deployment or not
   # Check balance
   # Fix gas limit
@@ -47,8 +47,16 @@ defmodule EthClient do
 
     contract_address = transaction["contractAddress"]
 
-    Context.set_current_contract(contract_address)
+    Context.set_contract_address(contract_address)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
+  end
+
+  def deploy(bin_path, abi_path) do
+    deploy(bin_path)
+    {:ok, api} = Contract.get_functions(abi_path)
+    Context.set_contract_functions(api)
+
+    Context.contract()
   end
 
   def call(method, arguments) do
@@ -59,7 +67,7 @@ defmodule EthClient do
 
     %{
       from: Context.user_account().address,
-      to: Context.current_contract(),
+      to: Context.contract().address,
       data: data
     }
     |> Rpc.call()
@@ -73,7 +81,7 @@ defmodule EthClient do
 
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
-    contract_address = Context.current_contract()
+    contract_address = Context.contract().address
 
     ## This is assuming the caller passes `amount` in eth
     amount = floor(amount * 1_000_000_000_000_000_000)
