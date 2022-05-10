@@ -2,54 +2,50 @@ defmodule EthClient.Context do
   use Agent
 
   alias EthClient.Account
+  alias EthClient.Contract
+  require Logger
 
   def start_link(%{chain_id: _chain_id, rpc_host: _rpc_host, user_account: %Account{}} = config) do
     Agent.start_link(fn -> config end, name: __MODULE__)
   end
 
   def all, do: Agent.get(__MODULE__, & &1)
+  def rpc_host, do: get(:rpc_host)
+  def chain_id, do: get(:chain_id)
+  def user_account, do: get(:user_account)
+  def contract, do: get(:contract)
+  def etherscan_api_key, do: get(:etherscan_api_key)
 
-  def rpc_host do
+  def set_rpc_host(new_host), do: set(:rpc_host, new_host)
+  def set_chain_id(new_chain_id), do: set(:chain_id, new_chain_id)
+  def set_user_account(new_user_account), do: set(:user_account, new_user_account)
+
+  def set_contract_address(new_address),
+    do: set(:contract, Map.put(get(:contract), :address, new_address))
+
+  def set_contract(new_address) do
+    set_contract_address(new_address)
+
+    case Contract.get_functions(new_address) do
+      {:ok, functions} ->
+        set_contract_functions(functions)
+
+      error ->
+        Logger.error("Could not fetch the contract's abi from Etherscan. Error: #{error}")
+    end
+  end
+
+  def set_contract_functions(api), do: set(:contract, Map.put(get(:contract), :functions, api))
+  def set_etherscan_api_key(new_key), do: set(:etherscan_api_key, new_key)
+
+  defp get(key) do
     Agent.get(__MODULE__, & &1)
-    |> Map.get(:rpc_host)
+    |> Map.get(key)
   end
 
-  def chain_id do
-    Agent.get(__MODULE__, & &1)
-    |> Map.get(:chain_id)
-  end
-
-  def user_account do
-    Agent.get(__MODULE__, & &1)
-    |> Map.get(:user_account)
-  end
-
-  def current_contract do
-    Agent.get(__MODULE__, & &1)
-    |> Map.get(:current_contract)
-  end
-
-  def set_rpc_host(new_host) do
+  defp set(key, value) do
     Agent.update(__MODULE__, fn config ->
-      Map.put(config, :rpc_host, new_host)
-    end)
-  end
-
-  def set_chain_id(new_chain_id) do
-    Agent.update(__MODULE__, fn config ->
-      Map.put(config, :chain_id, new_chain_id)
-    end)
-  end
-
-  def set_user_account(new_user_account) do
-    Agent.update(__MODULE__, fn config ->
-      Map.put(config, :user_account, new_user_account)
-    end)
-  end
-
-  def set_current_contract(new_contract) do
-    Agent.update(__MODULE__, fn config ->
-      Map.put(config, :current_contract, new_contract)
+      Map.put(config, key, value)
     end)
   end
 end

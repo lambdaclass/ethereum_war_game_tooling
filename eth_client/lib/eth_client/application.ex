@@ -6,6 +6,7 @@ defmodule EthClient.Application do
   use Application
 
   alias EthClient.Account
+  alias EthClient.Contract
 
   @impl true
   def start(_type, _args) do
@@ -15,7 +16,9 @@ defmodule EthClient.Application do
       user_account: %Account{
         address: "0xafb72ccaeb7e22c8a7640f605824b0898424b3da",
         private_key: "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c"
-      }
+      },
+      etherscan_api_key: nil,
+      contract: %Contract{address: nil, functions: nil}
     }
 
     children = [
