@@ -116,7 +116,7 @@ defmodule EthClient do
     chain = Context.chain_id() |> chain_name()
 
     if Context.chain_id() != 1234 do
-      Logger.info("Check it out here: https://#{chain}.etherscan.io/tx/#{tx_hash}")
+      Logger.info("Check it out here: https://#{chain}etherscan.io/tx/#{tx_hash}")
     end
 
     {:ok, tx_hash}
@@ -169,10 +169,10 @@ defmodule EthClient do
 
   defp chain_name(chain_id) do
     case chain_id do
+      # Mainnet does not have to specify a chain in the URL
       1 -> ""
-      3 -> "ropsten"
-      4 -> "rinkeby"
-      # this last condition is super ugly
+      3 -> "ropsten."
+      4 -> "rinkeby."
       _ -> "not supported"
     end
   end
