@@ -49,6 +49,12 @@ defmodule EthClient do
 
     Context.set_contract_address(contract_address)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
+
+    chain = Context.chain_id() |> chain_name()
+
+    if Context.chain_id() != 1234 do
+      Logger.info("Check it out here: https://#{chain}.etherscan.io/address/#{contract_address}")
+    end
   end
 
   def deploy(bin_path, abi_path) do
@@ -107,6 +113,12 @@ defmodule EthClient do
 
     Logger.info("Transaction confirmed!")
 
+    chain = Context.chain_id() |> chain_name()
+
+    if Context.chain_id() != 1234 do
+      Logger.info("Check it out here: https://#{chain}.etherscan.io/tx/#{tx_hash}")
+    end
+
     {:ok, tx_hash}
   end
 
@@ -153,6 +165,16 @@ defmodule EthClient do
     nonce
     |> RawTransaction.new(amount, gas_limit, gas_price, chain_id, recipient: recipient, data: data)
     |> ExRLP.encode(encoding: :hex)
+  end
+
+  defp chain_name(chain_id) do
+    case chain_id do
+      1 -> ""
+      3 -> "ropsten"
+      4 -> "rinkeby"
+      # this last condition is super ugly
+      _ -> "not supported"
+    end
   end
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
