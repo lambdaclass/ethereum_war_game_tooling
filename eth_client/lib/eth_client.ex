@@ -10,8 +10,8 @@ defmodule EthClient do
 
   @etherscan_supported_chains %{
     1 => "",
-    3 => "ropsten",
-    4 => "rinkeby"
+    3 => "ropsten.",
+    4 => "rinkeby."
   }
 
   # TODO:
@@ -168,8 +168,7 @@ defmodule EthClient do
   defp log_transaction_info(nil, _contract_address), do: nil
 
   defp log_transaction_info(chain, contract_address),
-    do:
-      Logger.info("Check it out here: https://#{chain}.etherscan.io/address/#{contract_address}")
+    do: Logger.info("Check it out here: https://#{chain}etherscan.io/address/#{contract_address}")
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
