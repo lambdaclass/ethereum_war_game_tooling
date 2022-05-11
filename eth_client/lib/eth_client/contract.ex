@@ -18,15 +18,16 @@ defmodule EthClient.Contract do
 
   defp parse_abi([%{"type" => "function"} = method_map | tail], acc) do
     method = %{
-      name: String.to_atom(Macro.underscore(method_map["name"])),
+      name: String.to_atom(method_map["name"]),
       state_mutability: method_map["stateMutability"],
       inputs: Enum.map(method_map["inputs"], fn input -> input["name"] end),
       # What's the difference between type and internal type?
       input_types: Enum.map(method_map["inputs"], fn input -> input["internalType"] end)
     }
 
+    name_snake_case = String.to_atom(Macro.underscore(method_map["name"]))
     function = build_function(method)
-    acc = Map.put(acc, method.name, Code.eval_quoted(function) |> elem(0))
+    acc = Map.put(acc, name_snake_case, Code.eval_quoted(function) |> elem(0))
 
     parse_abi(tail, acc)
   end
