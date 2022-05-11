@@ -8,6 +8,12 @@ defmodule EthClient do
 
   require Logger
 
+  @etherscan_supported_chains %{
+    1 => "",
+    3 => "ropsten",
+    4 => "rinkeby"
+  }
+
   # TODO:
   # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
   # View the state of a contract (all its variables, etc). This will require parsing the ABI
@@ -50,11 +56,7 @@ defmodule EthClient do
     Context.set_contract_address(contract_address)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
 
-    chain = Context.chain_id() |> chain_name()
-
-    if Context.chain_id() != 1234 do
-      Logger.info("Check it out here: https://#{chain}.etherscan.io/address/#{contract_address}")
-    end
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
   end
 
   def deploy(bin_path, abi_path) do
@@ -113,11 +115,7 @@ defmodule EthClient do
 
     Logger.info("Transaction confirmed!")
 
-    chain = Context.chain_id() |> chain_name()
-
-    if Context.chain_id() != 1234 do
-      Logger.info("Check it out here: https://#{chain}etherscan.io/tx/#{tx_hash}")
-    end
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
 
     {:ok, tx_hash}
   end
@@ -167,15 +165,11 @@ defmodule EthClient do
     |> ExRLP.encode(encoding: :hex)
   end
 
-  defp chain_name(chain_id) do
-    case chain_id do
-      # Mainnet does not have to specify a chain in the URL
-      1 -> ""
-      3 -> "ropsten."
-      4 -> "rinkeby."
-      _ -> "not supported"
-    end
-  end
+  defp log_transaction_info(nil, _contract_address), do: nil
+
+  defp log_transaction_info(chain, contract_address),
+    do:
+      Logger.info("Check it out here: https://#{chain}.etherscan.io/address/#{contract_address}")
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
