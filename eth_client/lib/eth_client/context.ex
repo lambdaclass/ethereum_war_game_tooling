@@ -21,18 +21,7 @@ defmodule EthClient.Context do
   def set_user_account(new_user_account), do: set(:user_account, new_user_account)
 
   def set_contract_address(new_address) do
-    <<>>
-
-    IEx.configure(
-      colors: [enabled: true],
-      default_prompt:
-        [
-          "#{String.slice(new_address, 0..5)}>",
-          :reset
-        ]
-        |> IO.ANSI.format()
-        |> IO.chardata_to_string()
-    )
+    IEx.configure(default_prompt: "#{String.slice(new_address, 0..5)}>")
 
     set(:contract, Map.put(get(:contract), :address, new_address))
   end
