@@ -20,6 +20,8 @@ defmodule EthClient.Rpc do
   def get_transaction_receipt(tx_hash), do: send_request("eth_getTransactionReceipt", [tx_hash])
   def call(call_map), do: send_request("eth_call", [call_map, "latest"])
 
+  def get_logs(log_map), do: send_request("eth_getLogs", [log_map])
+
   def wait_for_confirmation(tx_hash) do
     attempts = 100
     wait_for_tx(tx_hash, nil, attempts)
