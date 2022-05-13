@@ -10,15 +10,17 @@ defmodule EthClient.Application do
 
   @impl true
   def start(_type, _args) do
+    {chain_id, _} = Integer.parse(System.get_env("ETH_CHAIN_ID", "1234"))
+
     initial_context = %{
-      chain_id: 1234,
-      rpc_host: "http://localhost:8545",
+      chain_id: chain_id,
+      rpc_host: System.get_env("ETH_RPC_HOST", "http://localhost:8545"),
       user_account: %Account{
-        address: "0xafb72ccaeb7e22c8a7640f605824b0898424b3da",
-        private_key: "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c"
+        address: System.get_env("ETH_MINER_ADDRESS", "0xafb72ccaeb7e22c8a7640f605824b0898424b3da"),
+        private_key: System.get_env("ETH_MINER_PK", "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c"),
       },
-      etherscan_api_key: nil,
-      contract: %Contract{address: nil, functions: nil}
+      etherscan_api_key: System.get_env("ETH_API_KEY", nil),
+      contract: %Contract{address: System.get_env("ETH_CONTRACT", nil), functions: nil}
     }
 
     children = [
