@@ -129,6 +129,21 @@ defmodule EthClient do
     {:ok, tx_hash}
   end
 
+  def contract_deploy?(transaction) when is_number(transaction) do
+    transaction
+    |> Integer.to_string(16)
+    |> add_0x
+    |> contract_deploy?()
+  end
+
+  def contract_deploy?(transaction) when is_binary(transaction) do
+    case Rpc.get_transaction_receipt(transaction) do
+      {:ok, %{"contractAddress" => nil}} -> false
+      {:ok, %{"contractAddress" => _}} -> true
+      {:error, msg} -> {:error, msg}
+    end
+  end
+
   defp nonce(address) do
     {nonce, ""} =
       Rpc.get_transaction_count(address)
