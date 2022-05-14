@@ -60,7 +60,7 @@ defmodule EthClient.Rpc do
 
   defp tor_connection(payload) do
     post(Context.rpc_host(), payload,
-      opts: [adapter: [proxy: {:socks5, '127.0.0.1', 9150}, recv_timeout: 60_000]]
+      opts: [adapter: [proxy: {:socks5, '127.0.0.1', 9050}, recv_timeout: 60_000]]
     )
   end
 
