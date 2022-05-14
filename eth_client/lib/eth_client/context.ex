@@ -15,10 +15,12 @@ defmodule EthClient.Context do
   def user_account, do: get(:user_account)
   def contract, do: get(:contract)
   def etherscan_api_key, do: get(:etherscan_api_key)
+  def net_proxy, do: get(:net_proxy)
 
   def set_rpc_host(new_host), do: set(:rpc_host, new_host)
   def set_chain_id(new_chain_id), do: set(:chain_id, new_chain_id)
   def set_user_account(new_user_account), do: set(:user_account, new_user_account)
+  def set_net_proxy(proxy), do: set(:net_proxy, proxy)
 
   def set_contract_address(new_address),
     do: set(:contract, Map.put(get(:contract), :address, new_address))
