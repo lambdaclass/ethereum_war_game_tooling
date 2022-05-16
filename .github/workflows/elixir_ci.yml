@@ -68,7 +68,7 @@ jobs:
     - name: Create PLTs
       if: steps.plt-cache.outputs.cache-hit != 'true'
       run: |
-        cd cd eth_client/
+        cd eth_client/
         mkdir -p priv/plts
         mix dialyzer --plt
     - name: Run dialyzer
