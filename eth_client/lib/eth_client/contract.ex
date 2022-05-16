@@ -1,6 +1,5 @@
 defmodule EthClient.Contract do
-  @moduledoc """
-  """
+  @moduledoc false
 
   alias EthClient.ABI
 
