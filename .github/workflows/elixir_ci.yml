@@ -63,11 +63,12 @@ jobs:
       uses: actions/cache@v1
       id: plt-cache
       with:
-        path: priv/plts
+        path: eth_client/priv/plts
         key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
     - name: Create PLTs
       if: steps.plt-cache.outputs.cache-hit != 'true'
       run: |
+        cd cd eth_client/
         mkdir -p priv/plts
         mix dialyzer --plt
     - name: Run dialyzer
