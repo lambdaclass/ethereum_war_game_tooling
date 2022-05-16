@@ -1,6 +1,5 @@
 defmodule EthClient.ABI do
-  @moduledoc """
-  """
+  @moduledoc false
   alias EthClient.Context
 
   def get("0x" <> _ = address), do: get_etherscan(address)

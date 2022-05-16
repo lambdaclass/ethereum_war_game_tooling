@@ -1,6 +1,5 @@
 defmodule EthClient do
-  @moduledoc """
-  """
+  @moduledoc false
   alias EthClient.Context
   alias EthClient.Contract
   alias EthClient.RawTransaction
