@@ -80,4 +80,6 @@ jobs:
         cd eth_client/
         mix test
     - name: Code Coverage
-      run: mix coveralls
+      run: |
+        cd eth_client/
+        mix coveralls.github
