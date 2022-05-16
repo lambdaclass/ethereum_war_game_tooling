@@ -6,7 +6,7 @@ defmodule EthClient.Contract do
 
   defstruct [:address, :functions]
 
-  def get_functions, do: EthClient.Context.contract.functions
+  def get_functions, do: EthClient.Context.contract().functions
 
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
