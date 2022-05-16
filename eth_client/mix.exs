@@ -26,6 +26,7 @@ defmodule EthClient.MixProject do
       {:tesla, "~> 1.4"},
       {:hackney, "~> 1.17"},
       {:ex_abi, "~> 0.5"},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:rustler, "~> 0.25.0"},
       {:ex_rlp, "~> 0.5.4"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
