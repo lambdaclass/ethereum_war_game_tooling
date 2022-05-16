@@ -82,4 +82,4 @@ jobs:
     - name: Code Coverage
       run: |
         cd eth_client/
-        mix coveralls.github
+        mix coveralls
