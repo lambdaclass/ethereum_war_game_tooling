@@ -36,8 +36,6 @@ jobs:
           --health-retries 5
     steps:
     - uses: actions/checkout@v3
-    - name: Move into folder
-      run: cd eth_client/
     - name: Set up Elixir
       uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
       with:
@@ -50,11 +48,11 @@ jobs:
         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
         restore-keys: ${{ runner.os }}-mix-
     - name: Install dependencies
-      run: mix deps.get
+      run: cd eth_client/ mix deps.get
     - name: Check Formatting
-      run: mix format --check-formatted
+      run: cd eth_client/ mix format --check-formatted
     - name: Run Credo
-      run: mix credo --strict
+      run: cd eth_client/ mix credo --strict
     - name: Retrieve PLT Cache
       uses: actions/cache@v1
       id: plt-cache
@@ -64,9 +62,9 @@ jobs:
     - name: Create PLTs
       if: steps.plt-cache.outputs.cache-hit != 'true'
       run: |
-        mkdir -p priv/plts
-        mix dialyzer --plt
+        cd eth_client/ mkdir -p priv/plts
+        cd eth_client/ mix dialyzer --plt
     - name: Run dialyzer
-      run: mix dialyzer --no-check --halt-exit-status
+      run: cd eth_client/ mix dialyzer --no-check --halt-exit-status
     - name: Run tests
-      run: mix test
+      run: cd eth_client/ mix test
