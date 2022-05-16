@@ -48,11 +48,12 @@ jobs:
         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
         restore-keys: ${{ runner.os }}-mix-
     - name: Install dependencies
-      run: cd eth_client/ mix deps.get
+      run: cd eth_client/
+      run: mix deps.get
     - name: Check Formatting
-      run: cd eth_client/ mix format --check-formatted
+      run: mix format --check-formatted
     - name: Run Credo
-      run: cd eth_client/ mix credo --strict
+      run: mix credo --strict
     - name: Retrieve PLT Cache
       uses: actions/cache@v1
       id: plt-cache
@@ -62,9 +63,9 @@ jobs:
     - name: Create PLTs
       if: steps.plt-cache.outputs.cache-hit != 'true'
       run: |
-        cd eth_client/ mkdir -p priv/plts
-        cd eth_client/ mix dialyzer --plt
+        mkdir -p priv/plts
+        mix dialyzer --plt
     - name: Run dialyzer
-      run: cd eth_client/ mix dialyzer --no-check --halt-exit-status
+      run: mix dialyzer --no-check --halt-exit-status
     - name: Run tests
-      run: cd eth_client/ mix test
+      run: mix test
