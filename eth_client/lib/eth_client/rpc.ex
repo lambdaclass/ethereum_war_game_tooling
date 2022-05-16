@@ -47,9 +47,23 @@ defmodule EthClient.Rpc do
 
   defp send_request(method, args) do
     payload = build_payload(method, args)
-    {:ok, rsp} = post(Context.rpc_host(), payload)
+
+    {:ok, rsp} =
+      case Context.net_proxy() do
+        :tor ->
+          tor_connection(payload)
+
+        _none ->
+          post(Context.rpc_host(), payload)
+      end
 
     handle_response(rsp)
+  end
+
+  defp tor_connection(payload) do
+    post(Context.rpc_host(), payload,
+      opts: [adapter: [proxy: {:socks5, '127.0.0.1', 9050}, recv_timeout: 60_000]]
+    )
   end
 
   defp build_payload(method, params) do
