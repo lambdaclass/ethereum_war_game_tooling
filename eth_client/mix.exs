@@ -29,7 +29,7 @@ defmodule EthClient.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:rustler, "~> 0.25.0"},
       {:ex_rlp, "~> 0.5.4"},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
