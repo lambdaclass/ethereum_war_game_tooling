@@ -74,6 +74,7 @@ jobs:
     - name: Run dialyzer
       run: | 
         cd eth_client/
+        ls priv/plts
         mix dialyzer --no-check --halt-exit-status
     - name: Run tests
       run: |
