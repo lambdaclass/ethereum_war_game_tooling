@@ -2,6 +2,8 @@ defmodule EthClient.Contract do
   @moduledoc false
 
   alias EthClient.ABI
+  alias EthClient.Rpc
+  alias EthClient.Contract.Opcodes
 
   defstruct [:address, :functions]
 
@@ -10,6 +12,14 @@ defmodule EthClient.Contract do
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
       parse_abi(abi)
+    end
+  end
+
+  def to_opcodes, do: EthClient.Context.contract().address |> contract_to_opcodes
+
+  def contract_to_opcodes(address) when is_binary(address) do
+    with {:ok, code} <- Rpc.get_code(address) do
+      Opcodes.bytecode_to_opcodes(code)
     end
   end
 
