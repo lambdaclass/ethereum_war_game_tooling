@@ -74,8 +74,12 @@ jobs:
     - name: Run dialyzer
       run: | 
         cd eth_client/
-        mix dialyzer --no-check --halt-exit-status
+        mix dialyzer
     - name: Run tests
       run: |
         cd eth_client/
         mix test
+    - name: Code Coverage
+      run: |
+        cd eth_client/
+        mix coveralls
