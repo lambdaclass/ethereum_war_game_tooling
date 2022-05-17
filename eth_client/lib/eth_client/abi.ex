@@ -3,8 +3,26 @@ defmodule EthClient.ABI do
   """
   alias EthClient.Context
 
+  # get whether it's an etherscan-linked bc
+  # if it is, use provided ABI
+  # elsewise, get ABI through invoking panoramix on rpc provider
   def get("0x" <> _ = address), do: get_etherscan(address)
+
+
+
   def get(abi_path), do: get_local(abi_path)
+
+  defp get_non_etherscan(address) do
+  # if it exists, use provided ABI (.bin -> .abi) (?)
+  # elsewise, get ABI through invoking panoramix on rpc provider (if possible)
+
+  {path, _} = System.cmd("command", ["-v", "python3"])
+
+  {:ok, python_pid} = :python.start(python: '/opt/homebrew/bin/python3')
+  :python.call(python_pid, :'panoramix.decompiler', :decompile_address, [<<address>>])
+  :python.stop(python_pid)
+
+  end
 
   defp get_etherscan(address) do
     api_key = Context.etherscan_api_key()

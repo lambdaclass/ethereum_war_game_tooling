@@ -28,7 +28,8 @@ defmodule EthClient.MixProject do
       {:ex_abi, "~> 0.5"},
       {:rustler, "~> 0.25.0"},
       {:ex_rlp, "~> 0.5.4"},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:erlport, "~>0.10.1"}
     ]
   end
 end
