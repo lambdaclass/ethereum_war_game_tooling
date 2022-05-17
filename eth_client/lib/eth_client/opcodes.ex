@@ -31,7 +31,7 @@ defmodule EthClient.Opcodes do
   # Opcodes are base16 numbers ranging from
   # 00 up to FF, they come inside a string,
   # so we match them every 2 characters and
-  # check their opcode
+  # check the instruction matching those two characters
   # Let's say we have FFAAFF, this function clause
   # would match like this:
   # opcode = "FF"
