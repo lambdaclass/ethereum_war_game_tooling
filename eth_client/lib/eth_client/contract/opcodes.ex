@@ -1,4 +1,5 @@
-defmodule EthClient.Opcodes do
+defmodule EthClient.Contract.Opcodes do
+  alias EthClient.Rpc
   # Temporary storage for the opcodes,
   # should I improve this?
   @opcodes "./opcodes.json"
@@ -14,11 +15,13 @@ defmodule EthClient.Opcodes do
 
   @moduledoc """
    This module provides a function to turn any valid EVM byte code
-   into opcodes.
+   into opcodes and a function to retrieve a contract and turn it into
+   its opcodes.
   """
   def bytecode_to_opcodes(code) when is_binary(code) do
     parse_code(code, [])
   end
+
 
   # First remove the leading 0x,
   # upcase to keep it consistent with the JSON.
