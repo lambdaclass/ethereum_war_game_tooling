@@ -13,6 +13,13 @@ defmodule EthClient do
     4 => "rinkeby."
   }
 
+  @supported_chains ["ropsten", "rinkeby", "mainnet"]
+
+  @chain_id_by_name %{"mainnet" => 1, "ropsten" => 3, "rinkeby" => 4}
+
+  @local_host_chain_id 1234
+  @local_host_rpc "http://localhost:8545"
+
   # TODO:
   # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
   # View the state of a contract (all its variables, etc). This will require parsing the ABI
@@ -141,6 +148,21 @@ defmodule EthClient do
       {:ok, %{"contractAddress" => _}} -> true
       {:error, msg} -> {:error, msg}
     end
+  end
+
+  def set_chain(chain_name) when chain_name in @supported_chains do
+    infura_api_key = Context.infura_api_key()
+    Context.set_rpc_host("https://#{chain_name}.infura.io/v3/#{infura_api_key}")
+    Context.set_chain_id(@chain_id_by_name[chain_name])
+  end
+
+  def set_chain("local_host") do
+    Context.set_rpc_host(@local_host_rpc)
+    Context.set_chain_id(@local_host_chain_id)
+  end
+
+  def set_chain(_chain_name) do
+    Logger.info("{chain_name} is not a supported chain.")
   end
 
   defp nonce(address) do
