@@ -1,4 +1,5 @@
 defmodule EthClient.Context do
+  @moduledoc false
   use Agent
 
   alias EthClient.Account
