@@ -2,7 +2,11 @@
 
 # Test
 
-## Basic connection
+## Introduction
+
+This notebook provides some tests to check that the integration between Livebook and the Wargame Tool client is working correctly.
+
+## Connection with the Elixir Runtime
 
 Run the cell bellow to check the connection with the Elixir runtime:
 
@@ -16,7 +20,7 @@ Run the cell bellow to check the connection with the Elixir runtime:
 2
 ```
 
-## Context Information:
+## Context Information
 
 The following cell outputs the current EthClient context:
 

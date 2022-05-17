@@ -23,6 +23,7 @@ COPY . .
 RUN MIX_ENV="dev" mix compile
 # RUN MIX_ENV="test" mix compile
 
+ENTRYPOINT "./startup.sh"
 CMD iex -S mix
 # CMD iex --sname wargame_tools --erl "-config sys.config -setcookie mycookie" -S mix
 

@@ -5,9 +5,10 @@ services:
     build: .
     stdin_open: true # docker run -i
     tty: true        # docker run -t
-    command: iex --name eth_client@eth_client --cookie mycookie -S mix
     ports:
       - 43487:43487
+    volumes:
+      - .:/app/
 
   livebook:
     image: livebook/livebook
@@ -15,8 +16,8 @@ services:
       - 8080:8080
       - 8081:8081
     volumes:
-      - .:/home/livebook/
+      - ./livebooks/:/home/livebook/
     environment:
-      - LIVEBOOK_HOME=/home/livebook/livebooks
+      - LIVEBOOK_HOME=/home/livebook/
       - LIVEBOOK_TOKEN_ENABLED=false
       - LIVEBOOK_DEFAULT_RUNTIME=attached:eth_client@eth_client:mycookie
