@@ -2,8 +2,8 @@ defmodule EthClient.Contract do
   @moduledoc false
 
   alias EthClient.ABI
-  alias EthClient.Rpc
   alias EthClient.Contract.Opcodes
+  alias EthClient.Rpc
 
   defstruct [:address, :functions]
 
