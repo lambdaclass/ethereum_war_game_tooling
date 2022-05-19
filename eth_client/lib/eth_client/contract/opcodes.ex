@@ -10,12 +10,12 @@ defmodule EthClient.Contract.Opcodes do
     parse_code(code, [])
   end
 
-  defp get_opcodes() do
+  defp get_opcodes do
     opcodes_from_file!()
     |> parse_opcodes()
   end
 
-  defp opcodes_from_file!() do
+  defp opcodes_from_file! do
     "./opcodes.json"
     |> Path.expand()
     |> File.read!()
