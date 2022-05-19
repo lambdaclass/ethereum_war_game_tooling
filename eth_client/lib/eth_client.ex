@@ -13,15 +13,6 @@ defmodule EthClient do
     4 => "rinkeby."
   }
 
-  # TODO:
-  # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
-  # View the state of a contract (all its variables, etc). This will require parsing the ABI
-  # Add the ability to check if a transaction is a contract deployment or not
-  # Check balance
-  # Fix gas limit
-  # Change shell text based on context
-  # Get list of nodes
-
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
