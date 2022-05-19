@@ -1,17 +1,5 @@
 defmodule EthClient.Contract.Opcodes do
   alias EthClient.Rpc
-  # Temporary storage for the opcodes,
-  # should I improve this?
-  @opcodes "./opcodes.json"
-           |> Path.expand()
-           |> File.read!()
-           |> Jason.decode!()
-           |> Enum.reduce(%{}, fn %{"Hex" => hex, "Name" => name}, map_acum ->
-             case name do
-               "*invalid*" -> map_acum
-               _ -> Map.put(map_acum, hex, name)
-             end
-           end)
 
   @moduledoc """
    This module provides a function to turn any valid EVM byte code
@@ -22,12 +10,36 @@ defmodule EthClient.Contract.Opcodes do
     parse_code(code, [])
   end
 
+  defp get_opcodes() do
+    opcodes_from_file!()
+    |> parse_opcodes()
+  end
+
+  defp opcodes_from_file!() do
+    "./opcodes.json"
+    |> Path.expand()
+    |> File.read!()
+  end
+
+  defp parse_opcodes(codes) do
+    codes
+    |> Jason.decode!()
+    |> filter_invalid()
+  end
+
+  defp filter_invalid(code_list) do
+    Enum.reduce(code_list, fn
+      %{"Hex" => _hex, "Name" => name}, acc when name == "*invalid*" -> acc
+      %{"Hex" => hex, "Name" => name}, acc -> Map.put(acc, hex, name)
+    end)
+  end
+
   # First remove the leading 0x,
   # upcase to keep it consistent with the JSON.
   defp parse_code(<<"0x", rest::binary>>, []) do
     rest
     |> String.upcase()
-    |> parse_code([])
+    |> parse_code([], get_opcodes())
   end
 
   # Opcodes are base16 numbers ranging from
@@ -39,22 +51,22 @@ defmodule EthClient.Contract.Opcodes do
   # opcode = "FF"
   # rest = "AAFF"
   # And FF matches with the "SELFDESTRUCT" instruction.
-  defp parse_code(<<opcode::binary-size(2), rest::binary>>, acum) do
-    case Map.get(@opcodes, opcode) do
+  defp parse_code(<<opcode::binary-size(2), rest::binary>>, acum, opcodes) do
+    case Map.get(opcodes, opcode) do
       nil ->
-        parse_code(rest, ["#{opcode} opcode is unknown" | acum])
+        parse_code(rest, ["#{opcode} opcode is unknown" | acum], opcodes)
 
       <<"PUSH", n::binary>> ->
         {arguments, rest} = fetch_arguments(rest, n, :push)
-        parse_code(rest, ["PUSH 0x#{arguments}" | acum])
+        parse_code(rest, ["PUSH 0x#{arguments}" | acum], opcodes)
 
       instruction ->
-        parse_code(rest, [instruction | acum])
+        parse_code(rest, [instruction | acum], opcodes)
     end
   end
 
   # When this matches, we have finished parsing the string.
-  defp parse_code(_, acum) do
+  defp parse_code(_, acum, _) do
     acum
     |> Enum.reverse()
     |> Enum.with_index(fn string, index -> "[#{index}] " <> string end)
