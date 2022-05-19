@@ -12,15 +12,19 @@ defmodule EthClient.ABI do
 
   def get(abi_path), do: get_local(abi_path)
 
-  defp get_non_etherscan(address) do
-  # if it exists, use provided ABI (.bin -> .abi) (?)
-  # elsewise, get ABI through invoking panoramix on rpc provider (if possible)
+  def get_non_etherscan(address) do
+    # if it exists, use provided ABI (.bin -> .abi) (?)
+    # elsewise, get ABI through invoking panoramix on rpc provider (if possible)
+    decode_path = Application.app_dir(:eth_client, "priv/decode_address.py")
 
-  {path, _} = System.cmd("command", ["-v", "python3"])
+    case System.cmd("python3", [decode_path, address]) do
+      {hashes, 0} ->
+        {:ok, hashlist} = hashes
+        |> Jason.decode()
 
-  {:ok, python_pid} = :python.start(python: '/opt/homebrew/bin/python3')
-  :python.call(python_pid, :'panoramix.decompiler', :decompile_address, [<<address>>])
-  :python.stop(python_pid)
+        {_, _} ->
+          {:error, :abi_unavailable}
+    end
 
   end
 
