@@ -1,4 +1,9 @@
 defmodule EthClient.NodesList do
+  @moduledoc """
+  Retrieve a nodes list for a specific network. Right now, only supports getting a list
+  by DNS.
+  """
+
   alias DNS.Record
   alias DNS.Resource
 
