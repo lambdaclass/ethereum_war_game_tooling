@@ -15,7 +15,10 @@ defmodule EthClient.Contract do
     end
   end
 
-  def to_opcodes, do: EthClient.Context.contract().address |> contract_to_opcodes
+  def to_opcodes do
+    EthClient.Context.contract().address
+    |> contract_to_opcodes()
+  end
 
   def contract_to_opcodes(address) when is_binary(address) do
     with {:ok, code} <- Rpc.get_code(address) do
