@@ -11,7 +11,7 @@ All global configuration is kept in the `EthClient.Context` module, which holds 
 - `rpc_host`: The hostname needed to interact with the ethereum Json RPC API. This can be an infura-type url or just the hostname of an actual node.
 - `chain_id`: The id of the chain currently in use (`1` for mainnet, `4` for Rinkeby, etc).
 - `user_account`: A value of type `EthClient.Account`, which holds two fields, `address` and `private_key`. This is the account used to sign and send all transactions.
-- `current_contract`: The address of the contract we're currently interacting with.
+- `contract`: A value of type `EthClient.Contract`, which holds two fields, `address` and `functions`.
 
 You can change any of these config values at runtime by using the functions exposed by the `EthClient.Context` module.
 
@@ -163,9 +163,9 @@ cast call <contract_address> "retrieve()(uint256)" --rpc-url http://localhost:85
 ```
 ### Code
 
-Apart from EthClient calls, other modules can be called. 
+Apart from EthClient calls, other modules can be called.
 
-- RPC module handles RPC calls to the node. 
+- RPC module handles RPC calls to the node.
 - ABI module is a helper used to get the ABI of the desired contract, either calling to etherscan or locally.
 - The Contract module uses the ABI module to generate elixir functions that invoke/call the said methods in the contract.
 - The Account module defines a struct for accounts
