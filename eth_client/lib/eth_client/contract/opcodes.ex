@@ -22,7 +22,6 @@ defmodule EthClient.Contract.Opcodes do
     parse_code(code, [])
   end
 
-
   # First remove the leading 0x,
   # upcase to keep it consistent with the JSON.
   defp parse_code(<<"0x", rest::binary>>, []) do
