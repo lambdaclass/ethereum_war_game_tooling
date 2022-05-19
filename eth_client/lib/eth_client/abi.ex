@@ -8,22 +8,33 @@ defmodule EthClient.ABI do
   # elsewise, get ABI through invoking panoramix on rpc provider
   def get("0x" <> _ = address), do: get_etherscan(address)
 
-
-
   def get(abi_path), do: get_local(abi_path)
 
+  defp filter_unnamed(function_def) do
+      "0x" <> function_hash = function_def["hash"]
+      unknown_name = "unknown" <> function_hash <> "()"
+      case Map.get(function_def, "name") do
+        ^unknown_name -> Map.delete(function_def, "name") |> IO.inspect()
+        _ -> function_def
+      end
+  end
+
   def get_non_etherscan(address) do
-    # if it exists, use provided ABI (.bin -> .abi) (?)
-    # elsewise, get ABI through invoking panoramix on rpc provider (if possible)
+    # TODO: panoramix uses localhost as RPC provider
     decode_path = Application.app_dir(:eth_client, "priv/decode_address.py")
 
     case System.cmd("python3", [decode_path, address]) do
       {hashes, 0} ->
-        {:ok, hashlist} = hashes
+        {:ok, funclist} = hashes
         |> Jason.decode()
 
-        {_, _} ->
-          {:error, :abi_unavailable}
+        funclist = funclist
+        |> IO.inspect()
+        |> Enum.filter(fn funcdef -> Map.get(funcdef, "hash") != "_fallback()" end)
+        |> Enum.map(&filter_unnamed/1)
+
+      {_, _} ->
+        {:error, :abi_unavailable}
     end
 
   end
