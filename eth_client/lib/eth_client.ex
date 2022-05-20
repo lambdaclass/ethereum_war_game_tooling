@@ -82,7 +82,7 @@ defmodule EthClient do
 
   def transfer(amount \\ 0) do
     # I dont know how to make this work without sending random parameters.
-    # If you try sending "()" and [] the dependency that encode's will throw an error.
+    # If you try sending "()" and [] the dependency that encode will throw an error.
     method = "(uint)"
     arguments = [{12}]
 
