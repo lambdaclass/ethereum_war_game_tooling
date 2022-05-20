@@ -22,18 +22,41 @@ jobs:
         elixir: [1.13.0]
         otp: [24.1.7]
     services:
-      db:
-        image: postgres:12-alpine
-        ports: ["5432:5432"]
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: eth_war_game_tool_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
+      ethereum_node1:
+        command: --datadir /root/private_network/node1 --networkid 1234 --port 30304
+          --nodiscover --http --http.addr 0.0.0.0 --http.port 8545
+          --ipcpath /root/private_network/node1/geth.ipc --mine --miner.threads 1
+          --miner.gasprice "10000" --miner.etherbase 0xafb72ccaeb7e22c8a7640f605824b0898424b3da
+          --verbosity 5 --allow-insecure-unlock --fakepow --http.api eth,web3,personal,admin
+          --unlock 0xafb72ccaeb7e22c8a7640f605824b0898424b3da
+          --password /root/private_network/password
+          --http.vhosts=*
+        hostname: ethereum
+        image: ethereum/client-go:stable
+        ports:
+        - 30304:30304
+        - 8545:8545
+        volumes:
+        - ./geth_nodes/private_network:/root/private_network
+
+      ethereum_node2:
+        command: --datadir /root/private_network/node2 --networkid 1234 --port 30305
+          --nodiscover --http --http.addr 0.0.0.0 --http.port 8546
+          --ipcpath /root/private_network/node2/geth.ipc --mine --miner.threads 1
+          --miner.gasprice "10000" --miner.etherbase 0x77b648683cde1d69544ed6f4f7204e8d51c324db
+          --verbosity 5 --allow-insecure-unlock --fakepow --http.api eth,web3,personal,admin
+          --unlock 0x77b648683cde1d69544ed6f4f7204e8d51c324db
+          --password /root/private_network/password
+          --http.vhosts=*
+        hostname: ethereum
+        image: ethereum/client-go:stable
+        ports:
+        - 30305:30305
+        - 8546:8546
+        volumes:
+        - ./geth_nodes/private_network:/root/private_network
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Elixir
