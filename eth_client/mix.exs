@@ -31,7 +31,7 @@ defmodule EthClient.MixProject do
       {:rustler, "~> 0.25.0"},
       {:ex_rlp, "~> 0.5.4"},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.14.5"}
+      {:excoveralls, "~> 0.14.5", only: [:test], runtime: false}
     ]
   end
 end
