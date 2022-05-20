@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 name: Elixir CI
 
 on:
@@ -9,12 +12,15 @@ on:
 
 env:
   MIX_ENV: test
+<<<<<<< HEAD
   ETH_RPC_HOST: http://localhost:8545
   ETH_USER_ADDRESS: 0xafb72ccaeb7e22c8a7640f605824b0898424b3da
   ETH_USER_PK: e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c
   ETH_API_KEY: ""
   ETH_CONTRACT: ""
   ETH_CHAIN_ID: "1234"
+=======
+>>>>>>> main
     
 permissions:
   contents: read

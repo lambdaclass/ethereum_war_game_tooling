@@ -1,6 +1,5 @@
 defmodule EthClient.Rpc do
-  @moduledoc """
-  """
+  @moduledoc false
 
   alias EthClient.Context
   use Tesla
@@ -18,12 +17,17 @@ defmodule EthClient.Rpc do
   def gas_price, do: send_request("eth_gasPrice", [])
   def get_transaction_by_hash(tx_hash), do: send_request("eth_getTransactionByHash", [tx_hash])
   def get_transaction_receipt(tx_hash), do: send_request("eth_getTransactionReceipt", [tx_hash])
+  def get_code(contract), do: send_request("eth_getCode", [contract, "latest"])
   def call(call_map), do: send_request("eth_call", [call_map, "latest"])
+
+  def get_logs(log_map), do: send_request("eth_getLogs", [log_map])
 
   def wait_for_confirmation(tx_hash) do
     attempts = 100
     wait_for_tx(tx_hash, nil, attempts)
   end
+
+  def get_balance(address), do: send_request("eth_getBalance", [address, "latest"])
 
   defp wait_for_tx(_tx_hash, nil, 0) do
     {:error, :transaction_not_mined}
@@ -43,9 +47,23 @@ defmodule EthClient.Rpc do
 
   defp send_request(method, args) do
     payload = build_payload(method, args)
-    {:ok, rsp} = post(Context.rpc_host(), payload)
+
+    {:ok, rsp} =
+      case Context.net_proxy() do
+        :tor ->
+          tor_connection(payload)
+
+        _none ->
+          post(Context.rpc_host(), payload)
+      end
 
     handle_response(rsp)
+  end
+
+  defp tor_connection(payload) do
+    post(Context.rpc_host(), payload,
+      opts: [adapter: [proxy: {:socks5, '127.0.0.1', 9050}, recv_timeout: 60_000]]
+    )
   end
 
   defp build_payload(method, params) do

@@ -17,6 +17,26 @@ You can change any of these config values at runtime by using the functions expo
 
 The default config assumes you're running the local ethereum network this repo provides.
 
+If you want to use infura-type host this are the setps you must follow:
+
+First set your infura api key
+
+```
+Context.set_infura_api_key("your_infura_api_key")
+```
+
+Then set the your etherscan api key
+
+```
+Context.set_etherscan_api_key("your_eth_scan_api_key")
+```
+
+And finally set the name of the chain you want to use, for now this are the supported chains: eht mainnet, rinkeby and ropsten.
+
+```
+EthClient.set_chain("chain_name")
+```
+
 ### Interacting with smart contracts
 
 Currently there are three functions in the `EthClient` module that form the main API:
@@ -161,3 +181,14 @@ After storing a number, you can retrieve it with
 ```
 cast call <contract_address> "retrieve()(uint256)" --rpc-url http://localhost:8545
 ```
+### Code
+
+Apart from EthClient calls, other modules can be called. 
+
+- RPC module handles RPC calls to the node. 
+- ABI module is a helper used to get the ABI of the desired contract, either calling to etherscan or locally.
+- The Contract module uses the ABI module to generate elixir functions that invoke/call the said methods in the contract.
+- The Account module defines a struct for accounts
+- The Context module saves the current context, ie. contract ABI and address, and is updated as used. It is maintained with a Supervisor process.
+- The RawTransaction module handles encoding of transactions for sending. (via RPC module)
+- The Application module handles environment
