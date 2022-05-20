@@ -13,6 +13,21 @@ defmodule EthClient do
     4 => "rinkeby."
   }
 
+  @supported_chains ["ropsten", "rinkeby", "mainnet"]
+
+  @chain_id_by_name %{"mainnet" => 1, "ropsten" => 3, "rinkeby" => 4}
+
+  @local_host_chain_id 1234
+  @local_host_rpc "http://localhost:8545"
+
+  # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
+  # View the state of a contract (all its variables, etc). This will require parsing the ABI
+  # Add the ability to check if a transaction is a contract deployment or not
+  # Check balance
+  # Fix gas limit
+  # Change shell text based on context
+  # Get list of nodes
+
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
@@ -80,7 +95,7 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke(method, arguments, amount) do
+  def invoke(method, arguments, amount \\ 0) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
@@ -132,6 +147,21 @@ defmodule EthClient do
       {:ok, %{"contractAddress" => _}} -> true
       {:error, msg} -> {:error, msg}
     end
+  end
+
+  def set_chain(chain_name) when chain_name in @supported_chains do
+    infura_api_key = Context.infura_api_key()
+    Context.set_rpc_host("https://#{chain_name}.infura.io/v3/#{infura_api_key}")
+    Context.set_chain_id(@chain_id_by_name[chain_name])
+  end
+
+  def set_chain("local") do
+    Context.set_rpc_host(@local_host_rpc)
+    Context.set_chain_id(@local_host_chain_id)
+  end
+
+  def set_chain(chain_name) do
+    Logger.info("#{chain_name} is not a supported chain.")
   end
 
   defp nonce(address) do
