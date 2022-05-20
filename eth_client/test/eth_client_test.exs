@@ -1,8 +1,8 @@
 defmodule EthClientTest do
   use ExUnit.Case
   doctest EthClient
-  alias EthClient.Context
   alias EthClient.Account
+  alias EthClient.Context
 
   @bin "../contracts/src/bin/Storage.bin"
   @abi "../contracts/src/bin/Storage.abi"
