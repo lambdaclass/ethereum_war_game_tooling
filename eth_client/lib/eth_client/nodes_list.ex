@@ -60,10 +60,12 @@ defmodule EthClient.NodesList do
   defp get_children_branches(network, branches, nodes) do
     [branch | rest] = branches
 
-    with {:ok, node} <- get_children(network, branch) do
-      get_children_branches(network, rest, node ++ nodes)
-    else
-      {:error, _} = error -> error
+    case get_children(network, branch) do
+      {:ok, node} ->
+        get_children_branches(network, rest, node ++ nodes)
+
+      {:error, _} = error ->
+        error
     end
   end
 
