@@ -32,11 +32,10 @@ EthClient.Context.all()
 
 ```
 %{
-  chain_id: 4,
+  chain_id: 1234,
   contract: %EthClient.Contract{address: nil, functions: nil},
-  etherscan_api_key: "your_eth_scan_api_key",
-  infura_api_key: "your_infura_api_key",
-  rpc_host: "https://rinkeby.infura.io/v3/your_infura_api_key",
+  etherscan_api_key: nil,
+  rpc_host: "http://localhost:8545",
   user_account: %EthClient.Account{
     address: "0xafb72ccaeb7e22c8a7640f605824b0898424b3da",
     private_key: "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c"
@@ -70,26 +69,12 @@ EthereumChainConnectionTest.test!("http://ethereum:8546")
 <!-- livebook:{"output":true} -->
 
 ```
-Current block number for http://ethereum:8545 is 0x4
-Current block number for http://ethereum:8546 is 0x405
+Current block number for http://ethereum:8545 is 0x35
+Current block number for http://ethereum:8546 is 0x35
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-"0x405"
-```
-
-## Contract deployment
-
-```elixir
-EthClient.deploy(bin_path)
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-warning: variable "bin_path" does not exist and is being expanded to "bin_path()", please use parentheses to remove the ambiguity or change the variable name
-  /home/livebook/livebook-test.livemd#cell:1
-
+"0x35"
 ```
