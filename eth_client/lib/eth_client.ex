@@ -89,11 +89,7 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke(method, arguments) do
-    invoke(method, arguments, 0)
-  end
-
-  def invoke(method, arguments, amount) do
+  def invoke(method, arguments, amount \\ 0) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
