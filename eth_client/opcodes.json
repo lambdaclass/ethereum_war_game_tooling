@@ -1,0 +1,606 @@
+[
+    {
+        "Hex": "00",
+        "Name": "STOP"
+    },
+    {
+        "Hex": "01",
+        "Name": "ADD"
+    },
+    {
+        "Hex": "02",
+        "Name": "MUL"
+    },
+    {
+        "Hex": "03",
+        "Name": "SUB"
+    },
+    {
+        "Hex": "04",
+        "Name": "DIV"
+    },
+    {
+        "Hex": "05",
+        "Name": "SDIV"
+    },
+    {
+        "Hex": "06",
+        "Name": "MOD"
+    },
+    {
+        "Hex": "07",
+        "Name": "SMOD"
+    },
+    {
+        "Hex": "08",
+        "Name": "ADDMOD"
+    },
+    {
+        "Hex": "09",
+        "Name": "MULMOD"
+    },
+    {
+        "Hex": "0A",
+        "Name": "EXP"
+    },
+    {
+        "Hex": "0B",
+        "Name": "SIGNEXTEND"
+    },
+    {
+        "Hex": "0C-0F",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "10",
+        "Name": "LT"
+    },
+    {
+        "Hex": "11",
+        "Name": "GT"
+    },
+    {
+        "Hex": "12",
+        "Name": "SLT"
+    },
+    {
+        "Hex": "13",
+        "Name": "SGT"
+    },
+    {
+        "Hex": "14",
+        "Name": "EQ"
+    },
+    {
+        "Hex": "15",
+        "Name": "ISZERO"
+    },
+    {
+        "Hex": "16",
+        "Name": "AND"
+    },
+    {
+        "Hex": "17",
+        "Name": "OR"
+    },
+    {
+        "Hex": "18",
+        "Name": "XOR"
+    },
+    {
+        "Hex": "19",
+        "Name": "NOT"
+    },
+    {
+        "Hex": "1A",
+        "Name": "BYTE"
+    },
+    {
+        "Hex": "1B",
+        "Name": "SHL"
+    },
+    {
+        "Hex": "1C",
+        "Name": "SHR"
+    },
+    {
+        "Hex": "1D",
+        "Name": "SAR"
+    },
+    {
+        "Hex": "1E-1F",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "20",
+        "Name": "SHA3"
+    },
+    {
+        "Hex": "21-2F",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "30",
+        "Name": "ADDRESS"
+    },
+    {
+        "Hex": "31",
+        "Name": "BALANCE"
+    },
+    {
+        "Hex": "32",
+        "Name": "ORIGIN"
+    },
+    {
+        "Hex": "33",
+        "Name": "CALLER"
+    },
+    {
+        "Hex": "34",
+        "Name": "CALLVALUE"
+    },
+    {
+        "Hex": "35",
+        "Name": "CALLDATALOAD"
+    },
+    {
+        "Hex": "36",
+        "Name": "CALLDATASIZE"
+    },
+    {
+        "Hex": "37",
+        "Name": "CALLDATACOPY"
+    },
+    {
+        "Hex": "38",
+        "Name": "CODESIZE"
+    },
+    {
+        "Hex": "39",
+        "Name": "CODECOPY"
+    },
+    {
+        "Hex": "3A",
+        "Name": "GASPRICE"
+    },
+    {
+        "Hex": "3B",
+        "Name": "EXTCODESIZE"
+    },
+    {
+        "Hex": "3C",
+        "Name": "EXTCODECOPY"
+    },
+    {
+        "Hex": "3D",
+        "Name": "RETURNDATASIZE"
+    },
+    {
+        "Hex": "3E",
+        "Name": "RETURNDATACOPY"
+    },
+    {
+        "Hex": "3F",
+        "Name": "EXTCODEHASH"
+    },
+    {
+        "Hex": "40",
+        "Name": "BLOCKHASH"
+    },
+    {
+        "Hex": "41",
+        "Name": "COINBASE"
+    },
+    {
+        "Hex": "42",
+        "Name": "TIMESTAMP"
+    },
+    {
+        "Hex": "43",
+        "Name": "NUMBER"
+    },
+    {
+        "Hex": "44",
+        "Name": "DIFFICULTY"
+    },
+    {
+        "Hex": "45",
+        "Name": "GASLIMIT"
+    },
+    {
+        "Hex": "46",
+        "Name": "CHAINID"
+    },
+    {
+        "Hex": "47",
+        "Name": "SELFBALANCE"
+    },
+    {
+        "Hex": "48",
+        "Name": "BASEFEE"
+    },
+    {
+        "Hex": "49-4F",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "50",
+        "Name": "POP"
+    },
+    {
+        "Hex": "51",
+        "Name": "MLOAD"
+    },
+    {
+        "Hex": "52",
+        "Name": "MSTORE"
+    },
+    {
+        "Hex": "53",
+        "Name": "MSTORE8"
+    },
+    {
+        "Hex": "54",
+        "Name": "SLOAD"
+    },
+    {
+        "Hex": "55",
+        "Name": "SSTORE"
+    },
+    {
+        "Hex": "56",
+        "Name": "JUMP"
+    },
+    {
+        "Hex": "57",
+        "Name": "JUMPI"
+    },
+    {
+        "Hex": "58",
+        "Name": "PC"
+    },
+    {
+        "Hex": "59",
+        "Name": "MSIZE"
+    },
+    {
+        "Hex": "5A",
+        "Name": "GAS"
+    },
+    {
+        "Hex": "5B",
+        "Name": "JUMPDEST"
+    },
+    {
+        "Hex": "5C-5F",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "60",
+        "Name": "PUSH1"
+    },
+    {
+        "Hex": "61",
+        "Name": "PUSH2"
+    },
+    {
+        "Hex": "62",
+        "Name": "PUSH3"
+    },
+    {
+        "Hex": "63",
+        "Name": "PUSH4"
+    },
+    {
+        "Hex": "64",
+        "Name": "PUSH5"
+    },
+    {
+        "Hex": "65",
+        "Name": "PUSH6"
+    },
+    {
+        "Hex": "66",
+        "Name": "PUSH7"
+    },
+    {
+        "Hex": "67",
+        "Name": "PUSH8"
+    },
+    {
+        "Hex": "68",
+        "Name": "PUSH9"
+    },
+    {
+        "Hex": "69",
+        "Name": "PUSH10"
+    },
+    {
+        "Hex": "6A",
+        "Name": "PUSH11"
+    },
+    {
+        "Hex": "6B",
+        "Name": "PUSH12"
+    },
+    {
+        "Hex": "6C",
+        "Name": "PUSH13"
+    },
+    {
+        "Hex": "6D",
+        "Name": "PUSH14"
+    },
+    {
+        "Hex": "6E",
+        "Name": "PUSH15"
+    },
+    {
+        "Hex": "6F",
+        "Name": "PUSH16"
+    },
+    {
+        "Hex": "70",
+        "Name": "PUSH17"
+    },
+    {
+        "Hex": "71",
+        "Name": "PUSH18"
+    },
+    {
+        "Hex": "72",
+        "Name": "PUSH19"
+    },
+    {
+        "Hex": "73",
+        "Name": "PUSH20"
+    },
+    {
+        "Hex": "74",
+        "Name": "PUSH21"
+    },
+    {
+        "Hex": "75",
+        "Name": "PUSH22"
+    },
+    {
+        "Hex": "76",
+        "Name": "PUSH23"
+    },
+    {
+        "Hex": "77",
+        "Name": "PUSH24"
+    },
+    {
+        "Hex": "78",
+        "Name": "PUSH25"
+    },
+    {
+        "Hex": "79",
+        "Name": "PUSH26"
+    },
+    {
+        "Hex": "7A",
+        "Name": "PUSH27"
+    },
+    {
+        "Hex": "7B",
+        "Name": "PUSH28"
+    },
+    {
+        "Hex": "7C",
+        "Name": "PUSH29"
+    },
+    {
+        "Hex": "7D",
+        "Name": "PUSH30"
+    },
+    {
+        "Hex": "7E",
+        "Name": "PUSH31"
+    },
+    {
+        "Hex": "7F",
+        "Name": "PUSH32"
+    },
+    {
+        "Hex": "80",
+        "Name": "DUP1"
+    },
+    {
+        "Hex": "81",
+        "Name": "DUP2"
+    },
+    {
+        "Hex": "82",
+        "Name": "DUP3"
+    },
+    {
+        "Hex": "83",
+        "Name": "DUP4"
+    },
+    {
+        "Hex": "84",
+        "Name": "DUP5"
+    },
+    {
+        "Hex": "85",
+        "Name": "DUP6"
+    },
+    {
+        "Hex": "86",
+        "Name": "DUP7"
+    },
+    {
+        "Hex": "87",
+        "Name": "DUP8"
+    },
+    {
+        "Hex": "88",
+        "Name": "DUP9"
+    },
+    {
+        "Hex": "89",
+        "Name": "DUP10"
+    },
+    {
+        "Hex": "8A",
+        "Name": "DUP11"
+    },
+    {
+        "Hex": "8B",
+        "Name": "DUP12"
+    },
+    {
+        "Hex": "8C",
+        "Name": "DUP13"
+    },
+    {
+        "Hex": "8D",
+        "Name": "DUP14"
+    },
+    {
+        "Hex": "8E",
+        "Name": "DUP15"
+    },
+    {
+        "Hex": "8F",
+        "Name": "DUP16"
+    },
+    {
+        "Hex": "90",
+        "Name": "SWAP1"
+    },
+    {
+        "Hex": "91",
+        "Name": "SWAP2"
+    },
+    {
+        "Hex": "92",
+        "Name": "SWAP3"
+    },
+    {
+        "Hex": "93",
+        "Name": "SWAP4"
+    },
+    {
+        "Hex": "94",
+        "Name": "SWAP5"
+    },
+    {
+        "Hex": "95",
+        "Name": "SWAP6"
+    },
+    {
+        "Hex": "96",
+        "Name": "SWAP7"
+    },
+    {
+        "Hex": "97",
+        "Name": "SWAP8"
+    },
+    {
+        "Hex": "98",
+        "Name": "SWAP9"
+    },
+    {
+        "Hex": "99",
+        "Name": "SWAP10"
+    },
+    {
+        "Hex": "9A",
+        "Name": "SWAP11"
+    },
+    {
+        "Hex": "9B",
+        "Name": "SWAP12"
+    },
+    {
+        "Hex": "9C",
+        "Name": "SWAP13"
+    },
+    {
+        "Hex": "9D",
+        "Name": "SWAP14"
+    },
+    {
+        "Hex": "9E",
+        "Name": "SWAP15"
+    },
+    {
+        "Hex": "9F",
+        "Name": "SWAP16"
+    },
+    {
+        "Hex": "A0",
+        "Name": "LOG0"
+    },
+    {
+        "Hex": "A1",
+        "Name": "LOG1"
+    },
+    {
+        "Hex": "A2",
+        "Name": "LOG2"
+    },
+    {
+        "Hex": "A3",
+        "Name": "LOG3"
+    },
+    {
+        "Hex": "A4",
+        "Name": "LOG4"
+    },
+    {
+        "Hex": "A5-EF",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "F0",
+        "Name": "CREATE"
+    },
+    {
+        "Hex": "F1",
+        "Name": "CALL"
+    },
+    {
+        "Hex": "F2",
+        "Name": "CALLCODE"
+    },
+    {
+        "Hex": "F3",
+        "Name": "RETURN"
+    },
+    {
+        "Hex": "F4",
+        "Name": "DELEGATECALL"
+    },
+    {
+        "Hex": "F5",
+        "Name": "CREATE2"
+    },
+    {
+        "Hex": "F6-F9",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "FA",
+        "Name": "STATICCALL"
+    },
+    {
+        "Hex": "FB-FC",
+        "Name": "*invalid*"
+    },
+    {
+        "Hex": "FD",
+        "Name": "REVERT"
+    },
+    {
+        "Hex": "FE",
+        "Name": "INVALID"
+    },
+    {
+        "Hex": "FF",
+        "Name": "SELFDESTRUCT"
+    }
+]

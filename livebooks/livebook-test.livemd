@@ -1,0 +1,80 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# Test
+
+## Introduction
+
+This notebook provides some tests to check that the integration between Livebook and the Wargame Tool client is working correctly.
+
+## Connection with the Elixir Runtime
+
+Run the cell bellow to check the connection with the Elixir runtime:
+
+```elixir
+1 + 1
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+2
+```
+
+## Context Information
+
+The following cell outputs the current EthClient context:
+
+```elixir
+EthClient.Context.all()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+%{
+  chain_id: 1234,
+  contract: %EthClient.Contract{address: nil, functions: nil},
+  etherscan_api_key: nil,
+  rpc_host: "http://localhost:8545",
+  user_account: %EthClient.Account{
+    address: "0xafb72ccaeb7e22c8a7640f605824b0898424b3da",
+    private_key: "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c"
+  }
+}
+```
+
+## Checking connection with the Local Ethereum DevNet
+
+```elixir
+defmodule EthereumChainConnectionTest do
+  @headers [{"content-type", "application/json"}]
+  @block_number_request_body %{jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 83}
+
+  def test!(jsonrpc_url) do
+    body = Jason.encode!(@block_number_request_body)
+    {:ok, res} = Tesla.post(jsonrpc_url, body, headers: @headers)
+    %Tesla.Env{body: body, status: 200} = res
+    %{"result" => last_block_number} = Jason.decode!(body)
+
+    IO.puts("Current block number for #{jsonrpc_url} is #{last_block_number}")
+
+    last_block_number
+  end
+end
+
+EthereumChainConnectionTest.test!("http://ethereum:8545")
+EthereumChainConnectionTest.test!("http://ethereum:8546")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Current block number for http://ethereum:8545 is 0x35
+Current block number for http://ethereum:8546 is 0x35
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"0x35"
+```

@@ -14,13 +14,14 @@ services:
       --verbosity 5 --allow-insecure-unlock --fakepow --http.api eth,web3,personal,admin
       --unlock 0xafb72ccaeb7e22c8a7640f605824b0898424b3da
       --password /root/private_network/password
+      --http.vhosts=*
     hostname: ethereum
     image: ethereum/client-go:stable
     ports:
     - 30304:30304
     - 8545:8545
     volumes:
-    - ./private_network:/root/private_network
+    - ./geth_nodes/private_network:/root/private_network
 
   ethereum_node2:
     command: --datadir /root/private_network/node2 --networkid 1234 --port 30305
@@ -30,10 +31,40 @@ services:
       --verbosity 5 --allow-insecure-unlock --fakepow --http.api eth,web3,personal,admin
       --unlock 0x77b648683cde1d69544ed6f4f7204e8d51c324db
       --password /root/private_network/password
+      --http.vhosts=*
     hostname: ethereum
     image: ethereum/client-go:stable
     ports:
     - 30305:30305
     - 8546:8546
     volumes:
-    - ./private_network:/root/private_network
+    - ./geth_nodes/private_network:/root/private_network
+
+  # ----------------------------------------------------------------------------
+  # Wargame Tooling Client
+  # ----------------------------------------------------------------------------
+
+  eth_client:
+    build: ./eth_client/
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    ports:
+      - 43487:43487
+    volumes:
+      - ./eth_client/:/app/
+
+  # ----------------------------------------------------------------------------
+  # Livebook Frontend
+  # ----------------------------------------------------------------------------
+  
+  livebook:
+    image: livebook/livebook
+    ports:
+      - 8080:8080
+      - 8081:8081
+    volumes:
+      - ./livebooks/:/home/livebook/
+    environment:
+      - LIVEBOOK_HOME=/home/livebook/
+      - LIVEBOOK_TOKEN_ENABLED=false
+      - LIVEBOOK_DEFAULT_RUNTIME=attached:eth_client@eth_client:mycookie

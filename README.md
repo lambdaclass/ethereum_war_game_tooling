@@ -17,6 +17,26 @@ You can change any of these config values at runtime by using the functions expo
 
 The default config assumes you're running the local ethereum network this repo provides.
 
+If you want to use infura-type host this are the setps you must follow:
+
+First set your infura api key
+
+```
+Context.set_infura_api_key("your_infura_api_key")
+```
+
+Then set the your etherscan api key
+
+```
+Context.set_etherscan_api_key("your_eth_scan_api_key")
+```
+
+And finally set the name of the chain you want to use, for now this are the supported chains: eht mainnet, rinkeby and ropsten.
+
+```
+EthClient.set_chain("chain_name")
+```
+
 ### Interacting with smart contracts
 
 Currently there are three functions in the `EthClient` module that form the main API:
