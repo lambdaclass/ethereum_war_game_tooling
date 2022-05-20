@@ -5,9 +5,9 @@
 Simple elixir client to interact with the ethereum blockchain, deploying and calling smart contracts.
 
 ## Requirements
-	- Erlang/OTP 24
-	- Elixir 1.13.0
-	- [Geth](https://geth.ethereum.org/docs/install-and-build/installing-geth)
+- Erlang/OTP 24
+- Elixir 1.13.0
+- [Geth](https://geth.ethereum.org/docs/install-and-build/installing-geth)
 
 ## Quick Start with Tilt
 
@@ -20,12 +20,12 @@ git clone git@github.com:lambdaclass/ethereum_war_game_tooling.git
 cd ethereum_war_game_tooling
 tilt up
 ```
-Now that you have everything ready you can start playing with the tool in one of two ways. 
+Now that you have everything ready you can start playing with the tool in **one of two ways**. 
 
-#### Livebook
+#### <ins>Livebook</ins>
 Accesing to the Application running at http://localhost:8080 and creating a new notebook.
 
-#### Elixir IEx terminal
+#### <ins>Elixir IEx terminal</ins>
 
 ```bash
 cd eth_client
