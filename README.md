@@ -7,6 +7,7 @@ Simple elixir client to interact with the ethereum blockchain, deploying and cal
 ## Requirements
 - Erlang/OTP 24
 - Elixir 1.13.0
+- Rust 1.58.0
 - [Geth](https://geth.ethereum.org/docs/install-and-build/installing-geth)
 
 ## Quick Start with Tilt
