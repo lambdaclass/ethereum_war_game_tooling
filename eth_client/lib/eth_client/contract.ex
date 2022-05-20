@@ -52,7 +52,7 @@ defmodule EthClient.Contract do
       Opcodes.bytecode_to_opcodes(code)
     end
   end
-  
+
   defp parse_abi(abi), do: parse_abi(abi, %{})
 
   defp parse_abi([], acc), do: {:ok, acc}
