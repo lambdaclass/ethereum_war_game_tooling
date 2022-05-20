@@ -156,13 +156,13 @@ defmodule EthClient do
     Context.set_chain_id(@chain_id_by_name[chain_name])
   end
 
-  def set_chain("local_host") do
+  def set_chain("local") do
     Context.set_rpc_host(@local_host_rpc)
     Context.set_chain_id(@local_host_chain_id)
   end
 
-  def set_chain(_chain_name) do
-    Logger.info("{chain_name} is not a supported chain.")
+  def set_chain(chain_name) do
+    Logger.info("#{chain_name} is not a supported chain.")
   end
 
   defp nonce(address) do
