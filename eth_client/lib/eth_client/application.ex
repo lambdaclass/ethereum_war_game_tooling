@@ -23,16 +23,17 @@ defmodule EthClient.Application do
   end
 
   def get_initial_context() do
-    {chain_id, _} = "ETH_CHAIN_ID"
-         |> System.fetch_env!()
-         |> Integer.parse()
+    {chain_id, _} =
+      "ETH_CHAIN_ID"
+      |> System.fetch_env!()
+      |> Integer.parse()
 
     %{
       chain_id: chain_id,
       rpc_host: System.fetch_env!("ETH_RPC_HOST"),
       user_account: %Account{
         address: System.fetch_env!("ETH_USER_ADDRESS"),
-        private_key: System.fetch_env!("ETH_USER_PK"),
+        private_key: System.fetch_env!("ETH_USER_PK")
       },
       etherscan_api_key: System.fetch_env!("ETH_API_KEY"),
       contract: %Contract{address: System.fetch_env!("ETH_CONTRACT"), functions: nil}
