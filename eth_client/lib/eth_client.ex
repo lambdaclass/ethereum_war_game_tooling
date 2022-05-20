@@ -90,12 +90,26 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
+  def invoke_by_selector(selector, types, arguments, amount) do
+    arguments =
+      ABI.TypeEncoder.encode_raw(arguments, types)
+      |> Base.encode16(case: :lower)
+
+    data = selector <> arguments
+
+    invoke_with_data(data, amount)
+  end
+
   def invoke(method, arguments, amount) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
       |> add_0x()
 
+      invoke_with_data(data, amount)
+  end
+
+  defp invoke_with_data(data, amount) do
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
     contract_address = Context.contract().address

@@ -2,11 +2,16 @@ defmodule EthClient.ABI do
   @moduledoc """
   """
   alias EthClient.Context
+  alias EthClient.Rpc
 
-  # get whether it's an etherscan-linked bc
-  # if it is, use provided ABI
-  # elsewise, get ABI through invoking panoramix on rpc provider
-  def get("0x" <> _ = address), do: get_etherscan(address)
+  # get whether it's an etherscan-linked bc: get_etherscan_api_key...
+  def get("0x" <> _ = address) do
+    if Context.etherscan_api_key() do
+      get_etherscan(address)
+    else
+      get_non_etherscan(address)
+    end
+  end
 
   def get(abi_path), do: get_local(abi_path)
 
@@ -20,18 +25,18 @@ defmodule EthClient.ABI do
   end
 
   def get_non_etherscan(address) do
-    # TODO: panoramix uses localhost as RPC provider
-    decode_path = Application.app_dir(:eth_client, "priv/decode_address.py")
+    decode_path = Application.app_dir(:eth_client, "priv/decompile.py")
+    {:ok, bytecode} = Rpc.get_code(address)
 
-    case System.cmd("python3", [decode_path, address]) do
+    case System.cmd("python3", [decode_path, bytecode]) do
       {hashes, 0} ->
         {:ok, funclist} = hashes
         |> Jason.decode()
 
         funclist = funclist
-        |> IO.inspect()
-        |> Enum.filter(fn funcdef -> Map.get(funcdef, "hash") != "_fallback()" end)
+        |> Enum.filter(fn %{"hash" => hash} -> hash != "_fallback()" end)
         |> Enum.map(&filter_unnamed/1)
+        #TODO: see if it's view or pure for call/invoke distinction
 
       {_, _} ->
         {:error, :abi_unavailable}

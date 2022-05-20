@@ -29,6 +29,7 @@ defmodule EthClient.Contract do
 
     name_snake_case = String.to_atom(Macro.underscore(method_map["name"]))
     function = build_function(method)
+    # TODO: use hashes to make the function call
     acc = Map.put(acc, name_snake_case, Code.eval_quoted(function) |> elem(0))
 
     parse_abi(tail, acc)
@@ -57,6 +58,17 @@ defmodule EthClient.Contract do
     quote do
       fn unquote_splicing(args), amount ->
         EthClient.invoke(unquote(method_signature), unquote(args), amount)
+      end
+    end
+  end
+
+  defp build_function_by_hash(method) do
+    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
+    method_signature = "#{method.name}(#{Enum.join(method.input_types, ",")})"
+
+    quote do
+      fn unquote_splicing(args), amount ->
+        EthClient.invoke_by_selector(unquote(method_signature), unquote(args), , amount)
       end
     end
   end
