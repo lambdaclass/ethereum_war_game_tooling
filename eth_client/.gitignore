@@ -27,3 +27,6 @@ eth_client-*.tar
 
 # Shared objects created by rustler
 *.so
+
+# Atom packages
+.elixir_ls/
