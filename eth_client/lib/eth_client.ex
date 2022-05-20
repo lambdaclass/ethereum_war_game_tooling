@@ -20,7 +20,6 @@ defmodule EthClient do
   @local_host_chain_id 1234
   @local_host_rpc "http://localhost:8545"
 
-  # TODO:
   # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
   # View the state of a contract (all its variables, etc). This will require parsing the ABI
   # Add the ability to check if a transaction is a contract deployment or not
@@ -96,7 +95,7 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke(method, arguments, amount) do
+  def invoke(method, arguments, amount \\ 0) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
