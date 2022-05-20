@@ -31,7 +31,7 @@ Currently there are three functions in the `EthClient` module that form the main
 #### With an ABI file
 When there is an `.abi` file with the ABI of the contract, user can interact with API in a different way:
 
-- `EthClient.deploy(bin_path, abi_path)` deploys a compiled smart contract (as it is explained in [Without an ABI path](#without_an_abi) section) but it also add contract functions to the context when deploying it.
+- `EthClient.deploy(bin_path, abi_path)` deploys a compiled smart contract (as it is explained in [Without an ABI file](#without_an_abi) section) but it also add contract functions to the context when deploying it.
 
 - Then, user can interact with contract functions by calling `Context.contract.functions.contract_function_name.(parameters)`, either if it is a read-only method or not.
 
