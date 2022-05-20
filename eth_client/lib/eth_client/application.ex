@@ -22,7 +22,7 @@ defmodule EthClient.Application do
     Supervisor.start_link(children, opts)
   end
 
-  def get_initial_context() do
+  def get_initial_context do
     {chain_id, _} =
       "ETH_CHAIN_ID"
       |> System.fetch_env!()
