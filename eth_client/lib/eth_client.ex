@@ -1,6 +1,5 @@
 defmodule EthClient do
-  @moduledoc """
-  """
+  @moduledoc false
   alias EthClient.Context
   alias EthClient.Contract
   alias EthClient.RawTransaction
@@ -8,14 +7,11 @@ defmodule EthClient do
 
   require Logger
 
-  # TODO:
-  # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
-  # View the state of a contract (all its variables, etc). This will require parsing the ABI
-  # Add the ability to check if a transaction is a contract deployment or not
-  # Check balance
-  # Fix gas limit
-  # Change shell text based on context
-  # Get list of nodes
+  @etherscan_supported_chains %{
+    1 => "",
+    3 => "ropsten.",
+    4 => "rinkeby."
+  }
 
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
@@ -49,6 +45,8 @@ defmodule EthClient do
 
     Context.set_contract_address(contract_address)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
+
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
   end
 
   def deploy(bin_path, abi_path) do
@@ -73,7 +71,16 @@ defmodule EthClient do
     |> Rpc.call()
   end
 
-  def invoke(method, arguments, amount) do
+  def get_balance(address) do
+    {balance, _lead} =
+      Rpc.get_balance(address)
+      |> remove_leading_0x()
+      |> Integer.parse(16)
+
+    wei_to_ether(balance)
+  end
+
+  def invoke(method, arguments, amount \\ 0) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
@@ -107,7 +114,24 @@ defmodule EthClient do
 
     Logger.info("Transaction confirmed!")
 
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
+
     {:ok, tx_hash}
+  end
+
+  def contract_deploy?(transaction) when is_number(transaction) do
+    transaction
+    |> Integer.to_string(16)
+    |> add_0x
+    |> contract_deploy?()
+  end
+
+  def contract_deploy?(transaction) when is_binary(transaction) do
+    case Rpc.get_transaction_receipt(transaction) do
+      {:ok, %{"contractAddress" => nil}} -> false
+      {:ok, %{"contractAddress" => _}} -> true
+      {:error, msg} -> {:error, msg}
+    end
   end
 
   defp nonce(address) do
@@ -145,6 +169,8 @@ defmodule EthClient do
   defp remove_leading_0x({:ok, "0x" <> data}), do: data
   defp add_0x(data), do: "0x" <> data
 
+  defp wei_to_ether(amount), do: amount / 1.0e19
+
   defp build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
     recipient = opts[:recipient]
     data = opts[:data]
@@ -154,6 +180,11 @@ defmodule EthClient do
     |> RawTransaction.new(amount, gas_limit, gas_price, chain_id, recipient: recipient, data: data)
     |> ExRLP.encode(encoding: :hex)
   end
+
+  defp log_transaction_info(nil, _contract_address), do: nil
+
+  defp log_transaction_info(chain, contract_address),
+    do: Logger.info("Check it out here: https://#{chain}etherscan.io/address/#{contract_address}")
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 

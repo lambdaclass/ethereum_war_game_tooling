@@ -161,3 +161,14 @@ After storing a number, you can retrieve it with
 ```
 cast call <contract_address> "retrieve()(uint256)" --rpc-url http://localhost:8545
 ```
+### Code
+
+Apart from EthClient calls, other modules can be called. 
+
+- RPC module handles RPC calls to the node. 
+- ABI module is a helper used to get the ABI of the desired contract, either calling to etherscan or locally.
+- The Contract module uses the ABI module to generate elixir functions that invoke/call the said methods in the contract.
+- The Account module defines a struct for accounts
+- The Context module saves the current context, ie. contract ABI and address, and is updated as used. It is maintained with a Supervisor process.
+- The RawTransaction module handles encoding of transactions for sending. (via RPC module)
+- The Application module handles environment
