@@ -17,13 +17,12 @@ defmodule EthClient.Contract do
 
   def to_opcodes do
     EthClient.Context.contract().address
-    |> contract_to_opcodes()
+    |> contract_to_opcodes!()
   end
 
-  def contract_to_opcodes(address) when is_binary(address) do
-    with {:ok, code} <- Rpc.get_code(address) do
-      Opcodes.bytecode_to_opcodes(code)
-    end
+  def contract_to_opcodes!(address) when is_binary(address) do
+    {:ok, code} = Rpc.get_code(address)
+    Opcodes.bytecode_to_opcodes(code)
   end
 
   defp parse_abi(abi), do: parse_abi(abi, %{})
