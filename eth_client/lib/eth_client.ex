@@ -19,7 +19,7 @@ defmodule EthClient do
 
   @local_host_chain_id 1234
   @local_host_rpc "http://localhost:8545"
-  
+
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
