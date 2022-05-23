@@ -95,6 +95,45 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
+  def transfer(amount \\ 0) do
+    # According to the official documentation, the max amount of gas for the receive function is 2300.
+    # https://docs.soliditylang.org/en/v0.8.12/contracts.html#receive-ether-function
+    # And the tool we use to estimate gas will break trying to estimate with an empty function.
+    # Also, it is necessary to send an empty calldata.
+    gas_limit = 2300 * 10
+    data = "0x00000000"
+
+    caller = Context.user_account()
+    caller_address = String.downcase(caller.address)
+    contract_address = Context.contract().address
+
+    ## This is assuming the caller passes `amount` in eth
+    amount = floor(amount * 1_000_000_000_000_000_000)
+
+    nonce = nonce(caller.address)
+
+    raw_tx =
+      build_raw_tx(amount, nonce, gas_limit, gas_price(),
+        recipient: contract_address,
+        data: data
+      )
+
+    {:ok, tx_hash} =
+      sign_transaction(raw_tx, caller.private_key)
+      |> Rpc.send_raw_transaction()
+
+    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
+    Logger.info("Waiting for confirmation...")
+
+    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
+
+    Logger.info("Transaction confirmed!")
+
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
+
+    {:ok, tx_hash}
+  end
+
   @doc """
   Call a payable function,
   opts is a map that accepts the following keys as atoms:
@@ -109,13 +148,10 @@ defmodule EthClient do
   """
   def invoke(method, arguments, opts) do
     data =
-      if Map.get(opts, :empty_calldata?, false) do
-        "0x00000000"
-      else
         ABI.encode(method, arguments)
         |> Base.encode16(case: :lower)
         |> add_0x()
-      end
+
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
     contract_address = Context.contract().address
