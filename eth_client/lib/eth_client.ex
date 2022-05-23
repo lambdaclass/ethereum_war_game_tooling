@@ -106,7 +106,11 @@ defmodule EthClient do
     gas_limit = 2300 * 10
     data = "0x00000000"
 
-    {:ok, _tx_hash} = transact(data, gas_limit, amount)
+    caller = Context.user_account()
+    caller_address = String.downcase(caller.address)
+    contract_address = Context.contract().address
+
+    {:ok, _tx_hash} = transact(data, gas_limit, amount, caller, caller_address, contract_address)
   end
 
   @doc """
@@ -126,6 +130,10 @@ defmodule EthClient do
       |> Base.encode16(case: :lower)
       |> add_0x()
 
+    caller = Context.user_account()
+    caller_address = String.downcase(caller.address)
+    contract_address = Context.contract().address
+
     # How do I calculate gas limits appropiately?
     gas_limit =
       if Map.has_key?(opts, :gas_limit) do
@@ -135,7 +143,7 @@ defmodule EthClient do
       end
 
     amount = Map.get(opts, :amount, 0)
-    {:ok, _tx_hash} = transact(data, gas_limit, amount)
+    {:ok, _tx_hash} = transact(data, gas_limit, amount, caller, caller_address, contract_address)
   end
 
   def contract_deploy?(transaction) when is_number(transaction) do
@@ -220,11 +228,7 @@ defmodule EthClient do
   defp log_transaction_info(chain, contract_address),
     do: Logger.info("Check it out here: https://#{chain}etherscan.io/address/#{contract_address}")
 
-  defp transact(data, gas_limit, amount) do
-    caller = Context.user_account()
-    caller_address = String.downcase(caller.address)
-    contract_address = Context.contract().address
-
+  defp transact(data, gas_limit, amount, caller, caller_address, contract_address) do
     ## This is assuming the caller passes `amount` in eth
     amount = floor(amount * 1_000_000_000_000_000_000)
 
