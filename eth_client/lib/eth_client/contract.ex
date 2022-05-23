@@ -14,7 +14,7 @@ defmodule EthClient.Contract do
     end
   end
 
-  defp parse_abi(abi), do: parse_abi(abi, %{})
+  # defp parse_abi(abi), do: parse_abi(abi, %{})
 
   defp parse_abi([], acc), do: {:ok, acc}
 
@@ -35,8 +35,34 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
+  defp parse_abi() do
+
+  end
+
   defp parse_abi([_head | tail], acc) do
     parse_abi(tail, acc)
+  end
+
+  defp build_function_by_hash(%{selector: selector, state_mutability: mutability} = method)
+      when mutability in ["prue", "view"] do
+    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
+
+    quote do
+      fn types, unquote_splicing(args) ->
+        EthClient.call_by_selector(unquote(selector), types, unquote(args))
+      end
+    end
+  end
+
+  defp build_function_by_hash(%{selector: selector}) do
+    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
+    selector = "#{method.name}(#{Enum.join(method.input_types, ",")})"
+
+    quote do
+      fn types, unquote_splicing(args), amount ->
+        EthClient.invoke_by_selector(unquote(selector), types, unquote(args), amount)
+      end
+    end
   end
 
   defp build_function(%{state_mutability: mutability} = method)
@@ -62,14 +88,4 @@ defmodule EthClient.Contract do
     end
   end
 
-  defp build_function_by_hash(method) do
-    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
-    method_signature = "#{method.name}(#{Enum.join(method.input_types, ",")})"
-
-    quote do
-      fn unquote_splicing(args), amount ->
-        EthClient.invoke_by_selector(unquote(method_signature), unquote(args), , amount)
-      end
-    end
-  end
 end

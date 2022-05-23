@@ -81,6 +81,21 @@ defmodule EthClient do
     |> Rpc.call()
   end
 
+  def call_by_selector(selector, types, arguments) do
+    arguments =
+      ABI.TypeEncoder.encode_raw(arguments, types)
+      |> Base.encode16(case: :lower)
+
+    data = selector <> arguments
+
+    %{
+      from: Context.user_account().address,
+      to: Context.contract().address,
+      data: data
+    }
+    |> Rpc.call()
+  end
+
   def get_balance(address) do
     {balance, _lead} =
       Rpc.get_balance(address)
