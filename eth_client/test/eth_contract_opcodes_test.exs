@@ -1,13 +1,10 @@
 defmodule EthClientTest.Contract.Opcodes do
   use ExUnit.Case
   doctest EthClient
-  alias EthClient.Account
-  alias EthClient.Context
   alias EthClient.Contract.Opcodes
   import ExUnit.CaptureIO
 
   @bin "../contracts/src/bin/Storage.bin"
-  @abi "../contracts/src/bin/Storage.abi"
   @ops "../contracts/src/bin/storage_opcodes.txt"
 
   describe "bytecode_to_opcodes" do
