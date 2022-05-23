@@ -250,7 +250,7 @@ defmodule EthClient do
     log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
 
     {:ok, tx_hash}
-    end
+  end
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
