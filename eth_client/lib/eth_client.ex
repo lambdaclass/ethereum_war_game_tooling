@@ -121,7 +121,7 @@ defmodule EthClient do
       the estimated calculation of gas necessary for the transaction is made.
    e.g.: %{
      amount: 0.01,
-     check_gas_estimation: 150_000
+     gas_limit: 150_000
    }
   """
   def invoke(method, arguments, opts) do
