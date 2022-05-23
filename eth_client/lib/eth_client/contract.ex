@@ -15,6 +15,33 @@ defmodule EthClient.Contract do
     end
   end
 
+  @doc """
+  Using the contract in the context, returns the current state of the contract.
+  """
+  @spec state :: map()
+  def state do
+    with {:ok, abi} <- ABI.get(EthClient.Context.contract().address) do
+      state_from_abi(abi)
+    end
+  end
+
+  defp state_from_abi(abi) do
+    Enum.reduce(abi, %{}, fn operation, acc ->
+      if is_contract_state?(operation) do
+        %{"name" => name} = operation
+        {:ok, value} = EthClient.call("#{name}()", [])
+        Map.put(acc, name, value)
+      else
+        acc
+      end
+    end)
+  end
+
+  defp is_contract_state?(%{"inputs" => [], "stateMutability" => "view", "type" => "function"}),
+    do: true
+
+  defp is_contract_state?(_operation), do: false
+
   def to_opcodes do
     EthClient.Context.contract().address
     |> contract_to_opcodes()
