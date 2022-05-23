@@ -81,20 +81,12 @@ defmodule EthClient do
   end
 
   def transfer(amount \\ 0) do
-    # I dont know how to make this work without sending random parameters.
-    # If you try sending "()" and [] the dependency that encode will throw an error.
-    method = "(uint)"
-    arguments = [{12}]
-
     # According to the official documentation, the max amount of gas for the receive function is 2300.
     # https://docs.soliditylang.org/en/v0.8.12/contracts.html#receive-ether-function
     # And the tool we use to estimate gas will break trying to estimate with an empty function.
+    # Also, it is necessary to send an empty calldata.
     gas_limit = 2300 * 10
-
-    data =
-      ABI.encode(method, arguments)
-      |> Base.encode16(case: :lower)
-      |> add_0x()
+    data = "0x00000000"
 
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
