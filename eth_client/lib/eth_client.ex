@@ -13,6 +13,21 @@ defmodule EthClient do
     4 => "rinkeby."
   }
 
+  @supported_chains ["ropsten", "rinkeby", "mainnet"]
+
+  @chain_id_by_name %{"mainnet" => 1, "ropsten" => 3, "rinkeby" => 4}
+
+  @local_host_chain_id 1234
+  @local_host_rpc "http://localhost:8545"
+
+  # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
+  # View the state of a contract (all its variables, etc). This will require parsing the ABI
+  # Add the ability to check if a transaction is a contract deployment or not
+  # Check balance
+  # Fix gas limit
+  # Change shell text based on context
+  # Get list of nodes
+
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
@@ -80,6 +95,9 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
+  @doc """
+  Transfer ether to the contract address.
+  """
   def transfer(amount \\ 0) do
     # According to the official documentation, the max amount of gas for the receive function is 2300.
     # https://docs.soliditylang.org/en/v0.8.12/contracts.html#receive-ether-function
@@ -88,74 +106,36 @@ defmodule EthClient do
     gas_limit = 2300 * 10
     data = "0x00000000"
 
-    caller = Context.user_account()
-    caller_address = String.downcase(caller.address)
-    contract_address = Context.contract().address
-
-    ## This is assuming the caller passes `amount` in eth
-    amount = floor(amount * 1_000_000_000_000_000_000)
-
-    nonce = nonce(caller.address)
-
-    raw_tx =
-      build_raw_tx(amount, nonce, gas_limit, gas_price(),
-        recipient: contract_address,
-        data: data
-      )
-
-    {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
-      |> Rpc.send_raw_transaction()
-
-    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
-    Logger.info("Waiting for confirmation...")
-
-    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
-
-    Logger.info("Transaction confirmed!")
-
-    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
-
-    {:ok, tx_hash}
+    {:ok, _tx_hash} = transact(data, gas_limit, amount)
   end
 
-  def invoke(method, arguments, amount \\ 0) do
+  @doc """
+  Call a payable function,
+  opts is a map that accepts the following keys as atoms:
+   - amount: number of Ether to be sended, default to 0.
+   - gas_limit: amount of gas limit for the transaction. If this parameter is not passed,
+      the estimated calculation of gas necessary for the transaction is made.
+   e.g.: %{
+     amount: 0.01,
+     check_gas_estimation: 150_000
+   }
+  """
+  def invoke(method, arguments, opts) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
       |> add_0x()
 
-    caller = Context.user_account()
-    caller_address = String.downcase(caller.address)
-    contract_address = Context.contract().address
-
-    ## This is assuming the caller passes `amount` in eth
-    amount = floor(amount * 1_000_000_000_000_000_000)
-
-    nonce = nonce(caller.address)
     # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address) * 2
+    gas_limit =
+      if Map.has_key?(opts, :gas_limit) do
+        opts[:gas_limit]
+      else
+        gas_limit(data, caller_address, contract_address) * 2
+      end
 
-    raw_tx =
-      build_raw_tx(amount, nonce, gas_limit, gas_price(),
-        recipient: contract_address,
-        data: data
-      )
-
-    {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
-      |> Rpc.send_raw_transaction()
-
-    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
-    Logger.info("Waiting for confirmation...")
-
-    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
-
-    Logger.info("Transaction confirmed!")
-
-    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
-
-    {:ok, tx_hash}
+    amount = Map.get(opts, :amount, 0)
+    {:ok, _tx_hash} = transact(data, gas_limit, amount)
   end
 
   def contract_deploy?(transaction) when is_number(transaction) do
@@ -171,6 +151,21 @@ defmodule EthClient do
       {:ok, %{"contractAddress" => _}} -> true
       {:error, msg} -> {:error, msg}
     end
+  end
+
+  def set_chain(chain_name) when chain_name in @supported_chains do
+    infura_api_key = Context.infura_api_key()
+    Context.set_rpc_host("https://#{chain_name}.infura.io/v3/#{infura_api_key}")
+    Context.set_chain_id(@chain_id_by_name[chain_name])
+  end
+
+  def set_chain("local") do
+    Context.set_rpc_host(@local_host_rpc)
+    Context.set_chain_id(@local_host_chain_id)
+  end
+
+  def set_chain(chain_name) do
+    Logger.info("#{chain_name} is not a supported chain.")
   end
 
   defp nonce(address) do
@@ -224,6 +219,38 @@ defmodule EthClient do
 
   defp log_transaction_info(chain, contract_address),
     do: Logger.info("Check it out here: https://#{chain}etherscan.io/address/#{contract_address}")
+
+  defp transact(data, gas_limit, amount) do
+    caller = Context.user_account()
+    caller_address = String.downcase(caller.address)
+    contract_address = Context.contract().address
+
+    ## This is assuming the caller passes `amount` in eth
+    amount = floor(amount * 1_000_000_000_000_000_000)
+
+    nonce = nonce(caller.address)
+
+    raw_tx =
+      build_raw_tx(amount, nonce, gas_limit, gas_price(),
+        recipient: contract_address,
+        data: data
+      )
+
+    {:ok, tx_hash} =
+      sign_transaction(raw_tx, caller.private_key)
+      |> Rpc.send_raw_transaction()
+
+    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
+    Logger.info("Waiting for confirmation...")
+
+    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
+
+    Logger.info("Transaction confirmed!")
+
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
+
+    {:ok, tx_hash}
+    end
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
