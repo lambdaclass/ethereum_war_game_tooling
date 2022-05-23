@@ -10,9 +10,7 @@ defmodule EthClientTest.Contract.Opcodes do
   @abi "../contracts/src/bin/Storage.abi"
   @ops "../contracts/src/bin/storage_opcodes.txt"
 
-
   describe "bytecode_to_opcodes" do
-
     test "[SUCCESS] retrieve and match the opcodes of storage contract" do
       ops = File.read!(@ops)
       bin = File.read!(@bin) |> add_0x()
@@ -20,6 +18,5 @@ defmodule EthClientTest.Contract.Opcodes do
     end
   end
 
-
-  def add_0x(data) ,do: "0x" <> data
+  def add_0x(data), do: "0x" <> data
 end
