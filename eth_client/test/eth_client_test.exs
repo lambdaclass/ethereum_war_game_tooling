@@ -28,7 +28,7 @@ defmodule EthClientTest do
 
     @tag bin: @bin, abi: @abi
     test "[FAILURE] invokes a function with incorrect amount of params" do
-      assert_raise UndefinedFunctionError, fn -> EthClient.invoke("store(uint256)", []) end
+      assert_raise FunctionClauseError, fn -> EthClient.invoke("store(uint256)", []) end
     end
 
     @tag bin: @bin, abi: @abi
