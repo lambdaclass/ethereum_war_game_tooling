@@ -95,22 +95,42 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke(method, arguments, amount \\ 0) do
+  @doc """
+  Call a payable function,
+  opts is a map that accepts the following keys as atoms:
+   - amount: number of Ether to be sended, default to 0.
+   - gas_limit: amount of gas limit for the transaction. If this parameter is not passed,
+      the estimated calculation of gas necessary for the transaction is made.
+   e.g.: %{
+     amount: 0.01,
+     check_gas_estimation: 150_000,
+     empty_calldata: false
+   }
+  """
+  def invoke(method, arguments, opts) do
     data =
-      ABI.encode(method, arguments)
-      |> Base.encode16(case: :lower)
-      |> add_0x()
-
+      if Map.get(opts, :empty_calldata?, false) do
+        "0x00000000"
+      else
+        ABI.encode(method, arguments)
+        |> Base.encode16(case: :lower)
+        |> add_0x()
+      end
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
     contract_address = Context.contract().address
 
-    ## This is assuming the caller passes `amount` in eth
-    amount = floor(amount * 1_000_000_000_000_000_000)
+    amount = floor(Map.get(opts, :amount, 0) * 1_000_000_000_000_000_000)
 
     nonce = nonce(caller.address)
+
     # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address) * 2
+    gas_limit =
+      if Map.has_key?(opts, :gas_limit) do
+        opts[:gas_limit]
+      else
+        gas_limit(data, caller_address, contract_address) * 2
+      end
 
     raw_tx =
       build_raw_tx(amount, nonce, gas_limit, gas_price(),
