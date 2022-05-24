@@ -37,7 +37,6 @@ defmodule EthClient.Contract do
   end
 
   defp parse_abi([%{"type" => "function", "selector" => selector} = method_map | tail], acc) do
-    # method_map |> IO.inspect(label: "asd")
     method = %{
       selector: String.to_atom(selector),
       state_mutability: method_map["stateMutability"],
@@ -58,6 +57,7 @@ defmodule EthClient.Contract do
 
   defp build_function_by_hash(%{selector: selector, state_mutability: mutability} = method)
       when mutability in ["pure", "view"] do
+    # TODO: use param encoding to encode things here
     args = Macro.generate_arguments(length(method.inputs), __MODULE__)
 
     quote do
@@ -69,6 +69,7 @@ defmodule EthClient.Contract do
 
   defp build_function_by_hash(%{selector: selector} = method) do
     args = Macro.generate_arguments(length(method.inputs), __MODULE__)
+    # TODO: use param encoding to encode things here
 
     quote do
       fn types, unquote_splicing(args), amount ->
