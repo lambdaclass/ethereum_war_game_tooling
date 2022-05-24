@@ -94,15 +94,17 @@ jobs:
         cd eth_client/
         mkdir -p priv/plts
         mix dialyzer --plt
-    - name: Run dialyzer
-      run: | 
-        cd eth_client/
-        mix dialyzer
     - name: Run tests
       run: |
+        source .envrc
         cd eth_client/
         mix test
     - name: Code Coverage
       run: |
+        source .envrc
         cd eth_client/
         mix coveralls
+    - name: Run dialyzer
+      run: |
+        cd eth_client/
+        mix dialyzer
