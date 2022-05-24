@@ -24,7 +24,7 @@ defmodule EthClient.NodesList do
     GenServer.call(__MODULE__, {:get, network})
   end
 
-  def search_timeout, do: 20000
+  def search_timeout, do: 20_000
 
   ## Server callbacks
 
