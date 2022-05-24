@@ -1,13 +1,17 @@
 defmodule EthClient.NodesList.DNS do
+  @moduledoc """
+  Module for handling storage list retrieval using DNS.
+  """
   alias EthClient.NodesList
+  alias EthClient.NodesList.Storage
 
   @enr_prefix "enr:"
   @enrtree_branch_prefix "enrtree-branch:"
 
-  def search_for_nodes(network, nodes, enr_root) do
+  def search_for_nodes(network, storage, enr_root) do
     supervisor_name()
     |> Task.Supervisor.start_child(fn ->
-      get_children(network, nodes, enr_root)
+      get_children(network, storage, enr_root)
     end)
   end
 
@@ -28,30 +32,25 @@ defmodule EthClient.NodesList.DNS do
     end
   end
 
-  def get_nodes(network, nodes), do: :ets.lookup(nodes, network)
+  @spec get_nodes(NodesList.network(), :ets.tid()) :: [tuple()]
+  def get_nodes(network, storage), do: Storage.lookup(storage, network)
 
   @spec get_children(NodesList.network(), atom(), String.t()) :: :ok | {:error, term()}
-  defp get_children(network, nodes, branch) do
+  defp get_children(network, storage, branch) do
     branch_domain_name = branch <> "." <> get_domain_name(network)
     {:ok, response_split} = DNS.resolve(branch_domain_name, :txt)
     response = Enum.join(response_split)
-    parse_child(network, nodes, response)
+    parse_child(network, storage, response)
   end
 
   @spec parse_child(NodesList.network(), atom(), String.t()) :: :ok | {:error, term()}
-  defp parse_child(network, nodes, @enr_prefix <> new_node) do
-    network_nodes =
-      case get_nodes(network, nodes) do
-        [{_, result}] -> result
-        [] -> []
-      end
-
-    :ets.insert(nodes, {network, [new_node | network_nodes]})
+  defp parse_child(network, storage, @enr_prefix <> new_node) do
+    Storage.insert(storage, network, new_node)
   end
 
-  defp parse_child(network, nodes, @enrtree_branch_prefix <> branches) do
+  defp parse_child(network, storage, @enrtree_branch_prefix <> branches) do
     branches_split = String.split(branches, ",")
-    get_children_branches(network, nodes, branches_split)
+    get_children_branches(network, storage, branches_split)
   end
 
   defp parse_child(_, _, response) do
@@ -62,9 +61,9 @@ defmodule EthClient.NodesList.DNS do
   @spec get_children_branches(NodesList.network(), atom(), [String.t()]) :: :ok | {:error, term()}
   defp get_children_branches(_network, _, []), do: :ok
 
-  defp get_children_branches(network, nodes, [first_branch | rest]) do
-    {:ok, _pid} = search_for_nodes(network, nodes, first_branch)
-    get_children_branches(network, nodes, rest)
+  defp get_children_branches(network, storage, [first_branch | rest]) do
+    {:ok, _pid} = search_for_nodes(network, storage, first_branch)
+    get_children_branches(network, storage, rest)
   end
 
   @spec get_domain_name(NodesList.network()) :: String.t()
