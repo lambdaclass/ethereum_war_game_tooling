@@ -7,12 +7,12 @@ defmodule EthClient.NodesList.DNS do
 
   @enr_prefix "enr:"
   @enrtree_branch_prefix "enrtree-branch:"
+  @attempts 100
+  @waiting_time_ms 500
 
-  def search_for_nodes(network, storage, enr_root) do
-    supervisor_name()
-    |> Task.Supervisor.start_child(fn ->
-      get_children(network, storage, enr_root)
-    end)
+  def start_searching_for_nodes(network, storage, enr_root) do
+    Storage.delete(storage, network)
+    search_for_nodes(network, storage, enr_root)
   end
 
   def supervisor_name, do: EthClient.NodesList.DNS.Supervisor
@@ -33,9 +33,16 @@ defmodule EthClient.NodesList.DNS do
 
   def get_nodes(network, storage), do: Storage.lookup(storage, network)
 
+  defp search_for_nodes(network, storage, node) do
+    supervisor_name()
+    |> Task.Supervisor.start_child(fn ->
+      get_children(network, storage, node)
+    end)
+  end
+
   defp get_children(network, storage, branch) do
     branch_domain_name = branch <> "." <> get_domain_name(network)
-    {:ok, response_split} = DNS.resolve(branch_domain_name, :txt)
+    {:ok, response_split} = wait_to_resolve(branch_domain_name)
     response = Enum.join(response_split)
     parse_child(network, storage, response)
   end
@@ -61,6 +68,30 @@ defmodule EthClient.NodesList.DNS do
     {:ok, _pid} = search_for_nodes(network, storage, first_branch)
     get_children_branches(network, storage, rest)
   end
+
+  defp wait_to_resolve(domain_name), do: wait_to_resolve(domain_name, @attempts)
+
+  defp wait_to_resolve(domain_name, 0), do: {:error, "Cannot resolve #{domain_name}"}
+
+  defp wait_to_resolve(domain_name, attempts) do
+    response =
+      try do
+        try_to_resolve(domain_name, :start)
+      rescue
+        Socket.Error -> {:error, attempts}
+      end
+
+    try_to_resolve(domain_name, response)
+  end
+
+  defp try_to_resolve(domain_name, :start), do: DNS.resolve(domain_name, :txt)
+
+  defp try_to_resolve(domain_name, {:error, attempts}) do
+    Process.sleep(@waiting_time_ms)
+    wait_to_resolve(domain_name, attempts - 1)
+  end
+
+  defp try_to_resolve(_domain_name, {:ok, _} = success), do: success
 
   @spec get_domain_name(NodesList.network()) :: String.t()
   defp get_domain_name(:mainnet), do: "all.mainnet.ethdisco.net"

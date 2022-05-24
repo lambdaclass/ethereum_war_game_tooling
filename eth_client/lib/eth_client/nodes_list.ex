@@ -38,7 +38,7 @@ defmodule EthClient.NodesList do
   def handle_call({:update_using_dns, network}, _from, storage) do
     result =
       with {:ok, enr_root} <- NodesListDNS.get_root(network) do
-        NodesListDNS.search_for_nodes(network, storage, enr_root)
+        NodesListDNS.start_searching_for_nodes(network, storage, enr_root)
       end
 
     {:reply, result, storage}

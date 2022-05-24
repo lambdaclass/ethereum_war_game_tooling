@@ -20,4 +20,8 @@ defmodule EthClient.NodesList.Storage do
 
     :ets.insert(storage, {network, [new_node | network_nodes]})
   end
+
+  def delete(storage, network) do
+    :ets.delete(storage, network)
+  end
 end
