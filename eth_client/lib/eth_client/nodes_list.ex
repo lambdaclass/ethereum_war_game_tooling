@@ -16,13 +16,15 @@ defmodule EthClient.NodesList do
 
   @spec update_using_dns(network()) :: :ok | {:error, term()}
   def update_using_dns(network) do
-    GenServer.call(__MODULE__, {:update_using_dns, network}, :infinity)
+    GenServer.call(__MODULE__, {:update_using_dns, network}, search_timeout())
   end
 
   @spec get(network()) :: :ok | {:error, term()}
   def get(network) do
     GenServer.call(__MODULE__, {:get, network})
   end
+
+  def search_timeout, do: 20000
 
   ## Server callbacks
 

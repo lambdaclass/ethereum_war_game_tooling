@@ -13,7 +13,7 @@ defmodule EthClient.NodesList.DNS do
   def start_searching_for_nodes(network, storage, enr_root) do
     Storage.delete(storage, network)
     search = Task.async(fn -> get_children(network, storage, enr_root) end)
-    Task.await(search, :infinity)
+    Task.await(search, NodesList.search_timeout())
   end
 
   def get_root(network) do
@@ -50,7 +50,7 @@ defmodule EthClient.NodesList.DNS do
     |> Enum.map(fn branch ->
       Task.async(fn -> get_children(network, storage, branch) end)
     end)
-    |> Task.await_many(:infinity)
+    |> Task.await_many(NodesList.search_timeout())
 
     :ok
   end

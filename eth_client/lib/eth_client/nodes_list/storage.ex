@@ -8,16 +8,13 @@ defmodule EthClient.NodesList.Storage do
   end
 
   def lookup(storage, network) do
-    :ets.lookup(storage, network)
+    with [{^network, nodes}] <- :ets.lookup(storage, network) do
+      nodes
+    end
   end
 
   def insert(storage, network, new_node) do
-    network_nodes =
-      case lookup(storage, network) do
-        [{_, result}] -> result
-        [] -> []
-      end
-
+    network_nodes = lookup(storage, network)
     :ets.insert(storage, {network, [new_node | network_nodes]})
   end
 
