@@ -3,75 +3,49 @@ defmodule EthClient.NodesList do
   Retrieve a nodes list for a specific network. Right now, only supports getting a list
   by DNS.
   """
+  use GenServer
+
+  alias EthClient.NodesList.DNS, as: NodesListDNS
 
   @type network :: :mainnet | :ropsten | :rinkeby | :goerli
 
-  @enr_prefix "enr:"
-  @enrtree_branch_prefix "enrtree-branch:"
-
-  @spec get_by_dns(network()) :: {:ok, String.t()} | {:error, term()}
-  def get_by_dns(network) do
-    with {:ok, enr_root} <- get_root(network) do
-      get_children(network, enr_root)
-    end
+  def start_link(storage_name) do
+    GenServer.start_link(__MODULE__, storage_name, name: __MODULE__)
   end
 
-  @spec get_root(network()) :: {:ok, String.t()} | {:error, term()}
-  defp get_root(network) do
-    {:ok, response_splitted} =
-      network
-      |> get_domain_name()
-      |> DNS.resolve(:txt)
-
-    response = Enum.join(response_splitted)
-
-    case Regex.run(~r/^enrtree-root:v1 e=([\w\d]+) .*$/, response) do
-      [^response, enr_root] -> {:ok, enr_root}
-      nil -> {:error, "enr_root not found in DNS response: #{response}"}
-    end
+  @spec update_using_dns(network()) :: :ok | {:error, term()}
+  def update_using_dns(network) do
+    GenServer.call(__MODULE__, {:update_using_dns, network})
   end
 
-  @spec get_children(network(), String.t()) :: {:ok, [String.t()]} | {:error, term()}
-  defp get_children(network, branch) do
-    branch_domain_name = branch <> "." <> get_domain_name(network)
-    {:ok, response_splitted} = DNS.resolve(branch_domain_name, :txt)
-    response = Enum.join(response_splitted)
-
-    cond do
-      String.starts_with?(response, @enr_prefix) ->
-        @enr_prefix <> node = response
-        {:ok, [node]}
-
-      String.starts_with?(response, @enrtree_branch_prefix) ->
-        @enrtree_branch_prefix <> branches = response
-        branches_splitted = String.split(branches, ",")
-        get_children_branches(network, branches_splitted, [])
-
-      true ->
-        {:error,
-         "Neither #{@enr_prefix} nor #{@enrtree_branch_prefix} is in DNS response: #{response}"}
-    end
+  def get(network) do
+    GenServer.call(__MODULE__, {:get, network})
   end
 
-  @spec get_children_branches(network(), [String.t()], [String.t()]) ::
-          {:ok, [String.t()]} | {:error, term()}
-  defp get_children_branches(_network, [], nodes), do: {:ok, nodes}
+  ## Server callbacks
 
-  defp get_children_branches(network, branches, nodes) do
-    [branch | rest] = branches
-
-    case get_children(network, branch) do
-      {:ok, node} ->
-        get_children_branches(network, rest, node ++ nodes)
-
-      {:error, _} = error ->
-        error
-    end
+  @impl true
+  def init(storage_name) do
+    nodes = :ets.new(storage_name, [:named_table, :public, read_concurrency: true])
+    dns_supervisor_name = NodesListDNS.supervisor_name()
+    Task.Supervisor.start_link(name: dns_supervisor_name)
+    {:ok, nodes}
   end
 
-  @spec get_domain_name(network()) :: String.t()
-  defp get_domain_name(:mainnet), do: "all.mainnet.ethdisco.net"
-  defp get_domain_name(:ropsten), do: "all.ropsten.ethdisco.net"
-  defp get_domain_name(:rinkeby), do: "all.rinkeby.ethdisco.net"
-  defp get_domain_name(:goerli), do: "all.goerli.ethdisco.net"
+  @impl true
+  def handle_call({:update_using_dns, network}, _from, nodes) do
+    result =
+      with {:ok, enr_root} <- NodesListDNS.get_root(network) do
+        NodesListDNS.search_for_nodes(network, nodes, enr_root)
+      end
+
+    {:reply, result, nodes}
+  end
+
+  @impl true
+  def handle_call({:get, network}, _from, nodes) do
+    result = NodesListDNS.get_nodes(network, nodes)
+
+    {:reply, result, nodes}
+  end
 end

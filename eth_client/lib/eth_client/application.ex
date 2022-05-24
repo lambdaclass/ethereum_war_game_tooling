@@ -22,7 +22,8 @@ defmodule EthClient.Application do
     }
 
     children = [
-      {EthClient.Context, initial_context}
+      {EthClient.Context, initial_context},
+      {EthClient.NodesList, EthClient.NodesList.DNS.Storage}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
