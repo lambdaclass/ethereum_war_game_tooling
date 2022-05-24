@@ -15,11 +15,24 @@ defmodule EthClient.ABI do
 
   def get(abi_path), do: get_local(abi_path)
 
+  defp get_params(function_def) do
+    # it'd be nice to take from the types in the param
+    [name | params] = String.split(function_def["name"], ~r{\(|\)}, trim: true)
+
+    param_types = params
+                  |> List.to_string()
+                  |> String.split(",", trim: true)
+                  |> Enum.map(fn param -> %{"name" => param} end)
+
+    Map.put(function_def, "inputs", param_types)
+    |> Map.put("name", name)
+  end
+
   defp filter_unnamed(function_def) do
-      "0x" <> function_hash = function_def["hash"]
-      unknown_name = "unknown" <> function_hash <> "()"
+      "0x" <> function_hash = function_def["selector"]
+      unknown_name = "unknown" <> function_hash
       case Map.get(function_def, "name") do
-        ^unknown_name -> Map.delete(function_def, "name") |> IO.inspect()
+        ^unknown_name -> Map.delete(function_def, "name")
         _ -> function_def
       end
   end
@@ -34,10 +47,11 @@ defmodule EthClient.ABI do
         |> Jason.decode()
 
         funclist = funclist
-        |> Enum.filter(fn %{"hash" => hash} -> hash != "_fallback()" end)
+        |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
+        |> Enum.map(&get_params/1)
         |> Enum.map(&filter_unnamed/1)
-        #TODO: see if it's view or pure for call/invoke distinction
 
+        {:ok, funclist}
       {_, _} ->
         {:error, :abi_unavailable}
     end

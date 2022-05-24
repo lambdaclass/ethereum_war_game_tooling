@@ -10,21 +10,22 @@ defmodule EthClient.Contract do
 
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
+    #  abi |> IO.inspect(label: "ordenanza")
       parse_abi(abi)
     end
   end
 
-  # defp parse_abi(abi), do: parse_abi(abi, %{})
+  defp parse_abi(abi), do: parse_abi(abi, %{})
 
   defp parse_abi([], acc), do: {:ok, acc}
 
-  defp parse_abi([%{"type" => "function"} = method_map | tail], acc) do
+  defp parse_abi([%{"type" => "function", "name" => name} = method_map | tail], acc) do
     method = %{
-      name: String.to_atom(method_map["name"]),
+      name: name,
       state_mutability: method_map["stateMutability"],
       inputs: Enum.map(method_map["inputs"], fn input -> input["name"] end),
       # What's the difference between type and internal type?
-      input_types: Enum.map(method_map["inputs"], fn input -> input["internalType"] end)
+      input_types: Enum.map(method_map["inputs"], fn input -> input["name"] end)
     }
 
     name_snake_case = String.to_atom(Macro.underscore(method_map["name"]))
@@ -35,8 +36,20 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
-  defp parse_abi() do
+  defp parse_abi([%{"type" => "function", "selector" => selector} = method_map | tail], acc) do
+    # method_map |> IO.inspect(label: "asd")
+    method = %{
+      selector: String.to_atom(selector),
+      state_mutability: method_map["stateMutability"],
+      inputs: Enum.map(method_map["inputs"], fn input -> input["name"] end),
+    }
 
+    function = build_function_by_hash(method)
+
+    selector_atom = String.to_atom(Macro.underscore(method_map["selector"]))
+    acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
+
+    parse_abi(tail, acc)
   end
 
   defp parse_abi([_head | tail], acc) do
@@ -44,7 +57,7 @@ defmodule EthClient.Contract do
   end
 
   defp build_function_by_hash(%{selector: selector, state_mutability: mutability} = method)
-      when mutability in ["prue", "view"] do
+      when mutability in ["pure", "view"] do
     args = Macro.generate_arguments(length(method.inputs), __MODULE__)
 
     quote do
@@ -54,9 +67,8 @@ defmodule EthClient.Contract do
     end
   end
 
-  defp build_function_by_hash(%{selector: selector}) do
+  defp build_function_by_hash(%{selector: selector} = method) do
     args = Macro.generate_arguments(length(method.inputs), __MODULE__)
-    selector = "#{method.name}(#{Enum.join(method.input_types, ",")})"
 
     quote do
       fn types, unquote_splicing(args), amount ->
