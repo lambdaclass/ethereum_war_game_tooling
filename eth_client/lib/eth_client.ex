@@ -124,7 +124,7 @@ defmodule EthClient do
      gas_limit: 150_000
    }
   """
-  def invoke(method, arguments, opts) do
+  def invoke(method, arguments, opts \\ %{}) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
