@@ -46,7 +46,9 @@ Currently there are three functions in the `EthClient` module that form the main
 
 - `EthClient.call(method, arguments)` calls any read-only public method of a contract.
 
-- `EthClient.invoke(method, arguments, amount)` calls any public method of a contract that requires a transaction (usually to write stuff to the blockchain). The `amount` parameter controls how much `eth` is sent to the contract.
+- `EthClient.invoke(method, arguments, opts)` calls any public method of a contract that requires a transaction (usually to write stuff to the blockchain). The `opts` parameter is a map that accepts the following keys: amount, representing the amount of Ether to send (defaults to 0); gas_limit, the amount of gas to be sent (by default, invoke/3 will calculate the estimated gas). Both are optional.
+
+- `EthClient.invoke(amount)` transfer the amount of Ether received as param to the Context contract account, defaults to 0.
 
 #### With an ABI file
 When there is an `.abi` file with the ABI of the contract, user can interact with API in a different way:
@@ -79,7 +81,7 @@ iex(2)> EthClient.call("test_function()", [])
 ```
 
 ```
-iex(3)> EthClient.invoke("store(uint256)", [20], 0)
+iex(3)> EthClient.invoke("store(uint256)", [20], %âmount: 0.001, gas_limit: 100_000})
 19:55:28.127 [info]  Transaction accepted by the network, tx_hash: 0x137320dcfb61055313f73aafa799670a4d172936bc91200ebf7a95092f77c297
 19:55:28.127 [info]  Waiting for confirmation...
 19:55:41.177 [info]  Transaction confirmed!
@@ -88,6 +90,11 @@ iex(3)> EthClient.invoke("store(uint256)", [20], 0)
 
 ```
 iex(4)> EthClient.call("retrieve()", [])
+{:ok, "0x0000000000000000000000000000000000000000000000000000000000000014"}
+```
+
+```
+iex(4)> EthClient.transfer(0.98)
 {:ok, "0x0000000000000000000000000000000000000000000000000000000000000014"}
 ```
 
