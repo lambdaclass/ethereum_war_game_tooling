@@ -17,7 +17,6 @@ defmodule EthClient.NodesList.DNS do
 
   def supervisor_name, do: EthClient.NodesList.DNS.Supervisor
 
-  @spec get_root(NodesList.network()) :: {:ok, String.t()} | {:error, term()}
   def get_root(network) do
     {:ok, response_split} =
       network
@@ -32,10 +31,8 @@ defmodule EthClient.NodesList.DNS do
     end
   end
 
-  @spec get_nodes(NodesList.network(), :ets.tid()) :: [tuple()]
   def get_nodes(network, storage), do: Storage.lookup(storage, network)
 
-  @spec get_children(NodesList.network(), atom(), String.t()) :: :ok | {:error, term()}
   defp get_children(network, storage, branch) do
     branch_domain_name = branch <> "." <> get_domain_name(network)
     {:ok, response_split} = DNS.resolve(branch_domain_name, :txt)
@@ -43,9 +40,9 @@ defmodule EthClient.NodesList.DNS do
     parse_child(network, storage, response)
   end
 
-  @spec parse_child(NodesList.network(), atom(), String.t()) :: :ok | {:error, term()}
   defp parse_child(network, storage, @enr_prefix <> new_node) do
     Storage.insert(storage, network, new_node)
+    :ok
   end
 
   defp parse_child(network, storage, @enrtree_branch_prefix <> branches) do
@@ -58,7 +55,6 @@ defmodule EthClient.NodesList.DNS do
      "Neither #{@enr_prefix} nor #{@enrtree_branch_prefix} is in DNS response: #{response}"}
   end
 
-  @spec get_children_branches(NodesList.network(), atom(), [String.t()]) :: :ok | {:error, term()}
   defp get_children_branches(_network, _, []), do: :ok
 
   defp get_children_branches(network, storage, [first_branch | rest]) do
