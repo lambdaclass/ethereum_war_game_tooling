@@ -9,6 +9,7 @@ pragma solidity >=0.7.0 <0.9.0;
 contract Storage {
 
     uint256 number;
+    event Received(address, uint);
 
     /**
      * @dev Store value in variable
@@ -28,5 +29,9 @@ contract Storage {
 
     function test_function() public pure returns (uint256) {
         return 1;
+    }
+
+    receive() external payable {
+      emit Received(msg.sender, msg.value);
     }
 }
