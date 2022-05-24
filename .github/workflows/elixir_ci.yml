@@ -62,6 +62,7 @@ jobs:
 
     - name: Run tests
       env:
+        ETH_API_KEY: ${{ secrets.ETH_API_KEY }}
         ETH_CHAIN_ID: ${{ secrets.ETH_CHAIN_ID }}
         ETH_RPC_HOST: ${{ secrets.ETH_RPC_HOST }}
         ETH_USER_ADDRESS: ${{ secrets.ETH_USER_ADDRESS }}
@@ -72,6 +73,7 @@ jobs:
 
     - name: Code Coverage
       env:
+        ETH_API_KEY: ${{ secrets.ETH_API_KEY }}
         ETH_CHAIN_ID: ${{ secrets.ETH_CHAIN_ID }}
         ETH_RPC_HOST: ${{ secrets.ETH_RPC_HOST }}
         ETH_USER_ADDRESS: ${{ secrets.ETH_USER_ADDRESS }}
