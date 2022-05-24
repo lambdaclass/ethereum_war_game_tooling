@@ -12,10 +12,9 @@ defmodule EthClient.NodesList.DNS do
 
   def start_searching_for_nodes(network, storage, enr_root) do
     Storage.delete(storage, network)
-    search_for_nodes(network, storage, enr_root)
+    search = Task.async(fn -> get_children(network, storage, enr_root) end)
+    Task.await(search, :infinity)
   end
-
-  def supervisor_name, do: EthClient.NodesList.DNS.Supervisor
 
   def get_root(network) do
     {:ok, response_split} =
@@ -33,13 +32,6 @@ defmodule EthClient.NodesList.DNS do
 
   def get_nodes(network, storage), do: Storage.lookup(storage, network)
 
-  defp search_for_nodes(network, storage, node) do
-    supervisor_name()
-    |> Task.Supervisor.start_child(fn ->
-      get_children(network, storage, node)
-    end)
-  end
-
   defp get_children(network, storage, branch) do
     branch_domain_name = branch <> "." <> get_domain_name(network)
     {:ok, response_split} = wait_to_resolve(branch_domain_name)
@@ -53,20 +45,19 @@ defmodule EthClient.NodesList.DNS do
   end
 
   defp parse_child(network, storage, @enrtree_branch_prefix <> branches) do
-    branches_split = String.split(branches, ",")
-    get_children_branches(network, storage, branches_split)
+    branches
+    |> String.split(",")
+    |> Enum.map(fn branch ->
+      Task.async(fn -> get_children(network, storage, branch) end)
+    end)
+    |> Task.await_many(:infinity)
+
+    :ok
   end
 
   defp parse_child(_, _, response) do
     {:error,
      "Neither #{@enr_prefix} nor #{@enrtree_branch_prefix} is in DNS response: #{response}"}
-  end
-
-  defp get_children_branches(_network, _, []), do: :ok
-
-  defp get_children_branches(network, storage, [first_branch | rest]) do
-    {:ok, _pid} = search_for_nodes(network, storage, first_branch)
-    get_children_branches(network, storage, rest)
   end
 
   defp wait_to_resolve(domain_name), do: wait_to_resolve(domain_name, @attempts)

@@ -16,7 +16,7 @@ defmodule EthClient.NodesList do
 
   @spec update_using_dns(network()) :: :ok | {:error, term()}
   def update_using_dns(network) do
-    GenServer.call(__MODULE__, {:update_using_dns, network})
+    GenServer.call(__MODULE__, {:update_using_dns, network}, :infinity)
   end
 
   @spec get(network()) :: :ok | {:error, term()}
@@ -29,8 +29,6 @@ defmodule EthClient.NodesList do
   @impl true
   def init(storage_name) do
     storage = Storage.new(storage_name)
-    dns_supervisor_name = NodesListDNS.supervisor_name()
-    Task.Supervisor.start_link(name: dns_supervisor_name)
     {:ok, storage}
   end
 
