@@ -1,14 +1,12 @@
 defmodule EthClientTest do
   use ExUnit.Case
   doctest EthClient
-  alias EthClient.Account
-  alias EthClient.Context
 
   @bin "../contracts/src/bin/Storage.bin"
   @abi "../contracts/src/bin/Storage.abi"
 
-  setup %{bin: bin, abi: abi} do
-    contract = EthClient.deploy(bin, abi)
+  setup_all do
+    contract = EthClient.deploy(@bin, @abi)
     {:ok, contract: contract}
   end
 
@@ -41,7 +39,7 @@ defmodule EthClientTest do
     @tag bin: @bin, abi: @abi
     test "[SUCCESS] Call" do
       {:ok, res} = EthClient.call("retrieve()", [])
-      assert res == "0x0000000000000000000000000000000000000000000000000000000000000000"
+      assert res == "0x0000000000000000000000000000000000000000000000000000000000000003"
       {:ok, res} = EthClient.call("test_function()", [])
       assert res == "0x0000000000000000000000000000000000000000000000000000000000000001"
     end
@@ -64,7 +62,7 @@ defmodule EthClientTest do
     end
 
     @tag bin: @bin, abi: @abi
-    test "[FAILURE] unexisting address", %{contract: contract} do
+    test "[FAILURE] unexisting address", %{contract: _contract} do
       assert_raise FunctionClauseError, fn -> EthClient.get_balance("0x123213b") end
     end
   end
