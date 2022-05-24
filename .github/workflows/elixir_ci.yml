@@ -61,7 +61,6 @@ jobs:
         mix dialyzer --plt
     - name: Run tests
       run: |
-        source .envrc
         cd eth_client/
         mix test
     - name: Code Coverage
