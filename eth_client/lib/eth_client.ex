@@ -24,7 +24,7 @@ defmodule EthClient do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
 
-    caller = Context.user_account()
+    caller = Context.user_account() |> IO.inspect(label: :caller)
     caller_address = String.downcase(caller.address)
 
     nonce = nonce(caller.address)
