@@ -81,12 +81,9 @@ defmodule EthClient do
     |> Rpc.call()
   end
 
-  def call_by_selector(selector, types, arguments) do
-    arguments =
-      ABI.TypeEncoder.encode_raw(arguments, types)
-      |> Base.encode16(case: :lower)
-
-    data = selector <> arguments
+  def call_by_selector(selector, arguments) do
+    encoded_arguments = ABI.TypeEncoder.encode_raw(arguments, selector.types)
+    data = selector.method_id <> encoded_arguments
 
     %{
       from: Context.user_account().address,
@@ -105,12 +102,10 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke_by_selector(selector, types, arguments, amount) do
-    arguments =
-      ABI.TypeEncoder.encode_raw(arguments, types)
-      |> Base.encode16(case: :lower)
-
-    data = selector <> arguments
+  def invoke_by_selector(selector, arguments, amount) do
+    encoded_arguments = ABI.TypeEncoder.encode_raw(arguments, selector.types)
+    data = selector.method_id <> encoded_arguments
+            |> IO.inspect(label: "morbusssy", binaries: :as_strings)
 
     invoke_with_data(data, amount)
   end

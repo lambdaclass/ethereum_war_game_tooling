@@ -10,7 +10,6 @@ defmodule EthClient.Contract do
 
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
-    #  abi |> IO.inspect(label: "ordenanza")
       parse_abi(abi)
     end
   end
@@ -28,7 +27,7 @@ defmodule EthClient.Contract do
       input_types: Enum.map(method_map["inputs"], fn input -> input["name"] end)
     }
 
-    name_snake_case = String.to_atom(Macro.underscore(method_map["name"]))
+    name_snake_case = String.to_atom(Macro.underscore(name))
     function = build_function(method)
     # TODO: use hashes to make the function call
     acc = Map.put(acc, name_snake_case, Code.eval_quoted(function) |> elem(0))
@@ -36,16 +35,24 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
-  defp parse_abi([%{"type" => "function", "selector" => selector} = method_map | tail], acc) do
-    method = %{
-      selector: String.to_atom(selector),
-      state_mutability: method_map["stateMutability"],
-      inputs: Enum.map(method_map["inputs"], fn input -> input["name"] end),
-    }
+  defp parse_abi([%{function: name} = method_map | tail], acc) do
+    function = build_function_by_hash(method_map)
 
-    function = build_function_by_hash(method)
+    selector_atom = name
+                    |> Macro.underscore()
+                    |> String.to_atom()
 
-    selector_atom = String.to_atom(Macro.underscore(method_map["selector"]))
+    acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
+
+    parse_abi(tail, acc)
+  end
+
+  defp parse_abi([%{type: function, method_id: selector} = method_map | tail], acc) do
+    function = build_function_by_hash(method_map)
+
+    selector_atom = selector
+                    |> String.to_atom()
+
     acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
 
     parse_abi(tail, acc)
@@ -55,25 +62,32 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
-  defp build_function_by_hash(%{selector: selector, state_mutability: mutability} = method)
+  defp build_function_by_hash(%{method_id: selector, state_mutability: mutability} = method)
       when mutability in ["pure", "view"] do
-    # TODO: use param encoding to encode things here
-    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
+    args = method.types
+      |> length()
+      |> Macro.generate_arguments(__MODULE__)
+
+    bound_method = Macro.escape(method)
 
     quote do
-      fn types, unquote_splicing(args) ->
-        EthClient.call_by_selector(unquote(selector), types, unquote(args))
+      fn unquote_splicing(args) ->
+        EthClient.call_by_selector(unquote(bound_method), unquote(args))
       end
     end
   end
 
-  defp build_function_by_hash(%{selector: selector} = method) do
-    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
-    # TODO: use param encoding to encode things here
+  defp build_function_by_hash(%{method_id: selector} = method) do
+    args = method
+    |> Map.get(:types)
+    |> length()
+    |> Macro.generate_arguments(__MODULE__)
+
+    bound_method = Macro.escape(method)
 
     quote do
-      fn types, unquote_splicing(args), amount ->
-        EthClient.invoke_by_selector(unquote(selector), types, unquote(args), amount)
+      fn unquote_splicing(args), amount ->
+        EthClient.invoke_by_selector(unquote(bound_method), unquote(args), amount)
       end
     end
   end

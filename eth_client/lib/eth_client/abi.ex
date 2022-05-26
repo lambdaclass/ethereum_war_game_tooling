@@ -15,24 +15,19 @@ defmodule EthClient.ABI do
 
   def get(abi_path), do: get_local(abi_path)
 
-  defp get_params(function_def) do
-    # it'd be nice to take from the types in the param
-    [name | params] = String.split(function_def["name"], ~r{\(|\)}, trim: true)
+  def to_selector(function_def) do
+    selector = ABI.FunctionSelector.decode(function_def["name"])
+    selector
+      |> Map.put(:method_id, function_def["selector"])
+      |> Map.put(:state_mutability, function_def["stateMutability"])
 
-    param_types = params
-                  |> List.to_string()
-                  |> String.split(",", trim: true)
-                  |> Enum.map(fn param -> %{"name" => param} end)
-
-    Map.put(function_def, "inputs", param_types)
-    |> Map.put("name", name)
   end
 
   defp filter_unnamed(function_def) do
-      "0x" <> function_hash = function_def["selector"]
+      "0x" <> function_hash = function_def.method_id
       unknown_name = "unknown" <> function_hash
-      case Map.get(function_def, "name") do
-        ^unknown_name -> Map.delete(function_def, "name")
+      case Map.get(function_def, :function) do
+        ^unknown_name -> Map.delete(function_def, :function)
         _ -> function_def
       end
   end
@@ -48,7 +43,7 @@ defmodule EthClient.ABI do
 
         funclist = funclist
         |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
-        |> Enum.map(&get_params/1)
+        |> Enum.map(&to_selector/1)
         |> Enum.map(&filter_unnamed/1)
 
         {:ok, funclist}
