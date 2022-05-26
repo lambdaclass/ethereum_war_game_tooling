@@ -5,9 +5,9 @@ defmodule EthClientTest do
   @bin "../contracts/src/bin/Storage.bin"
   @abi "../contracts/src/bin/Storage.abi"
 
-  setup_all do
+  setup_all [
     :create_deployed_contract
-  end
+  ]
 
   describe "deploy/2" do
     @tag bin: @bin, abi: @abi
@@ -68,6 +68,6 @@ defmodule EthClientTest do
 
   defp create_deployed_contract(_context) do
     contract = EthClient.deploy(@bin, @abi)
-    %{contract: contract}
+    %{contract: contract} |> IO.inspect(label: :contract)
   end
 end
