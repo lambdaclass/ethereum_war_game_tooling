@@ -40,7 +40,12 @@ defmodule EthClient.NodesList.DNS do
   end
 
   defp parse_child(network, storage, @enr_prefix <> new_node) do
-    Storage.insert(storage, network, new_node)
+    decoded_node =
+      new_node
+      |> Base.url_decode64!(padding: false)
+      |> ExRLP.decode()
+
+    Storage.insert(storage, network, decoded_node)
     :ok
   end
 
