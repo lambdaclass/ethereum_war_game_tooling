@@ -6,8 +6,7 @@ defmodule EthClientTest do
   @abi "../contracts/src/bin/Storage.abi"
 
   setup_all do
-    contract = EthClient.deploy(@bin, @abi)
-    {:ok, contract: contract}
+    :create_deployed_contract
   end
 
   describe "deploy/2" do
@@ -65,5 +64,10 @@ defmodule EthClientTest do
     test "[FAILURE] unexisting address", %{contract: _contract} do
       assert_raise FunctionClauseError, fn -> EthClient.get_balance("0x123213b") end
     end
+  end
+
+  defp create_deployed_contract(_context) do
+    contract = EthClient.deploy(@bin, @abi)
+    %{contract: contract}
   end
 end
