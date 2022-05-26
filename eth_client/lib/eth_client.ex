@@ -42,6 +42,7 @@ defmodule EthClient do
     {:ok, tx_hash} =
       sign_transaction(raw_tx, caller.private_key)
       |> Rpc.send_raw_transaction()
+      |> IO.inspect(label: "send_raw_transaction")
 
     Logger.info("Deployment transaction accepted by the network, tx_hash: #{tx_hash}")
     Logger.info("Waiting for confirmation...")
