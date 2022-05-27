@@ -36,7 +36,7 @@ defmodule EthClient.Application do
         private_key: System.fetch_env!("ETH_USER_PK")
       },
       etherscan_api_key: System.fetch_env!("ETH_API_KEY"),
-      contract: %Contract{address: System.fetch_env!("ETH_CONTRACT"), functions: nil}
+      contract: %Contract{address: System.get_env("ETH_CONTRACT"), functions: nil}
     }
   end
 end
