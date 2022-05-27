@@ -1,4 +1,4 @@
-defmodule EthClientTest do
+defmodule ContractTest do
   use ExUnit.Case
   doctest EthClient
   alias EthClient.Account
