@@ -83,6 +83,8 @@ defmodule EthClient do
 
   def call_by_selector(selector, arguments) do
     encoded_arguments = ABI.TypeEncoder.encode_raw(arguments, selector.types)
+    |> Base.encode16(case: :lower)
+
     data = selector.method_id <> encoded_arguments
 
     %{
@@ -104,15 +106,15 @@ defmodule EthClient do
 
   def invoke_by_selector(selector, arguments, amount) do
     encoded_arguments = ABI.TypeEncoder.encode_raw(arguments, selector.types)
+    |> Base.encode16(case: :lower)
     data = selector.method_id <> encoded_arguments
-            |> IO.inspect(label: "morbusssy", binaries: :as_strings)
 
     invoke_with_data(data, amount)
   end
 
   def invoke(method, arguments, amount) do
-    data =
-      ABI.encode(method, arguments)
+    data = method
+      |> ABI.encode(arguments)
       |> Base.encode16(case: :lower)
       |> add_0x()
 

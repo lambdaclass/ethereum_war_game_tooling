@@ -8,6 +8,7 @@ def get_hash(function_def):
     func['name'] = function_def['abi_name']
 
     if function_def['payable']:
+        # This needs some work
         func['stateMutability'] = "payable"
     else: 
         func['stateMutability'] = "nonpayable"

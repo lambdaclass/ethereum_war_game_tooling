@@ -24,12 +24,11 @@ defmodule EthClient.Contract do
       state_mutability: method_map["stateMutability"],
       inputs: Enum.map(method_map["inputs"], fn input -> input["name"] end),
       # What's the difference between type and internal type?
-      input_types: Enum.map(method_map["inputs"], fn input -> input["name"] end)
+      input_types: Enum.map(method_map["inputs"], fn input -> input["internalType"] end)
     }
 
     name_snake_case = String.to_atom(Macro.underscore(name))
     function = build_function(method)
-    # TODO: use hashes to make the function call
     acc = Map.put(acc, name_snake_case, Code.eval_quoted(function) |> elem(0))
 
     parse_abi(tail, acc)
