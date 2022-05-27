@@ -6,7 +6,7 @@ defmodule EthClient.Contract do
 
   defstruct [:address, :functions]
 
-  def get_functions, do: EthClient.Context.contract.functions
+  def get_functions, do: EthClient.Context.contract().functions
 
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
@@ -37,9 +37,10 @@ defmodule EthClient.Contract do
   defp parse_abi([%{function: name} = method_map | tail], acc) do
     function = build_function_by_hash(method_map)
 
-    selector_atom = name
-                    |> Macro.underscore()
-                    |> String.to_atom()
+    selector_atom =
+      name
+      |> Macro.underscore()
+      |> String.to_atom()
 
     acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
 
@@ -49,8 +50,9 @@ defmodule EthClient.Contract do
   defp parse_abi([%{type: function, method_id: selector} = method_map | tail], acc) do
     function = build_function_by_hash(method_map)
 
-    selector_atom = selector
-                    |> String.to_atom()
+    selector_atom =
+      selector
+      |> String.to_atom()
 
     acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
 
@@ -62,8 +64,9 @@ defmodule EthClient.Contract do
   end
 
   defp build_function_by_hash(%{method_id: selector, state_mutability: mutability} = method)
-      when mutability in ["pure", "view"] do
-    args = method.types
+       when mutability in ["pure", "view"] do
+    args =
+      method.types
       |> length()
       |> Macro.generate_arguments(__MODULE__)
 
@@ -77,10 +80,11 @@ defmodule EthClient.Contract do
   end
 
   defp build_function_by_hash(%{method_id: selector} = method) do
-    args = method
-    |> Map.get(:types)
-    |> length()
-    |> Macro.generate_arguments(__MODULE__)
+    args =
+      method
+      |> Map.get(:types)
+      |> length()
+      |> Macro.generate_arguments(__MODULE__)
 
     bound_method = Macro.escape(method)
 
@@ -113,5 +117,4 @@ defmodule EthClient.Contract do
       end
     end
   end
-
 end

@@ -17,19 +17,20 @@ defmodule EthClient.ABI do
 
   def to_selector(function_def) do
     selector = ABI.FunctionSelector.decode(function_def["name"])
-    selector
-      |> Map.put(:method_id, function_def["selector"])
-      |> Map.put(:state_mutability, function_def["stateMutability"])
 
+    selector
+    |> Map.put(:method_id, function_def["selector"])
+    |> Map.put(:state_mutability, function_def["stateMutability"])
   end
 
   defp filter_unnamed(function_def) do
-      "0x" <> function_hash = function_def.method_id
-      unknown_name = "unknown" <> function_hash
-      case Map.get(function_def, :function) do
-        ^unknown_name -> Map.delete(function_def, :function)
-        _ -> function_def
-      end
+    "0x" <> function_hash = function_def.method_id
+    unknown_name = "unknown" <> function_hash
+
+    case Map.get(function_def, :function) do
+      ^unknown_name -> Map.delete(function_def, :function)
+      _ -> function_def
+    end
   end
 
   def get_non_etherscan(address) do
@@ -38,19 +39,21 @@ defmodule EthClient.ABI do
 
     case System.cmd("python3", [decode_path, bytecode]) do
       {hashes, 0} ->
-        {:ok, funclist} = hashes
-        |> Jason.decode()
+        {:ok, funclist} =
+          hashes
+          |> Jason.decode()
 
-        funclist = funclist
-        |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
-        |> Enum.map(&to_selector/1)
-        |> Enum.map(&filter_unnamed/1)
+        funclist =
+          funclist
+          |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
+          |> Enum.map(&to_selector/1)
+          |> Enum.map(&filter_unnamed/1)
 
         {:ok, funclist}
+
       {_, _} ->
         {:error, :abi_unavailable}
     end
-
   end
 
   defp get_etherscan(address) do
