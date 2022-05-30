@@ -6,7 +6,6 @@ defmodule EthClientTest do
   @abi "../contracts/src/bin/Storage.abi"
 
   setup_all do
-    IO.inspect(EthClient.Context.all())
     contract = EthClient.deploy(@bin, @abi)
     {:ok, contract: contract}
   end
