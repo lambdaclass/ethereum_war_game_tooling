@@ -1,7 +1,7 @@
 defmodule EthClient.WebSocket do
   use WebSockex
   alias EthClient.Context
-  @wsocket "wss://rinkeby.infura.io/ws/v3/59d4079d3a294989b61401bf97785af6"
+  @wsocket System.fetch_env!("WS_URL")
 
   def start_link(state \\ []) do
     WebSockex.start_link(@wsocket, __MODULE__, state)
