@@ -30,7 +30,7 @@ defmodule EthClient.WebSocket do
     msg = decode_msg(msg)
 
     IO.puts("Log received\n")
-    IO.puts("address: #{msg["address"]}\ndata: #{msg["data"]}\nTopic: #{msg["topics"]}")  
+    IO.puts("address: #{msg["address"]}\ndata: #{msg["data"]}\nTopic: #{msg["topics"]}")
     {:ok, state}
   end
 
