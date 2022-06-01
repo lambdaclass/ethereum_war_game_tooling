@@ -1,8 +1,10 @@
 mod raw_transaction;
+mod raw_ping_packet;
 use ethereum_types::{H160, H256, U256};
 use raw_transaction::RawTransaction;
+use raw_ping_packet::{RawPingPacket,Endpoint};
 use rlp::Rlp;
-
+use std::net;
 /// Signs an ethereum payload. This library assumes that the provided payload string
 /// is the RLP encoding of the following list:
 /// [nonce, gas_price, gas_limit, recipient, value, data, chain_id].
@@ -45,4 +47,29 @@ pub fn sign_transaction(payload_str: String, private_key: String) -> String {
     return transaction_prefix + &signed_payload;
 }
 
-rustler::init!("Elixir.EthClient", [sign_transaction]);
+
+#[rustler::nif]
+pub fn send_ping(_payload_str: String, private_key: String) -> Vec<u8> {
+    let mut pkey_data: [u8; 32] = Default::default();
+    pkey_data.copy_from_slice(&hex::decode(private_key).unwrap());
+    let pkey = H256(pkey_data);
+
+    let raw_ping = RawPingPacket {
+        version: 1,
+        from: Endpoint{address: 1, udp_port: 1, tcp_port: 1},
+        to: Endpoint{address: 1, udp_port: 1, tcp_port: 1},
+        expiration: 1
+    };
+
+    let mut host = String::with_capacity(128);
+    host.push_str(raw_ping.to.address);
+    host.push_str(":");
+    host.push_str(raw_ping.to.udp_port);
+    
+    let socket = net::UdpSocket::bind(host).expect("failed to bind host socket");
+
+
+    return raw_ping.encode_packet(&pkey);
+}
+
+rustler::init!("Elixir.EthClient", [sign_transaction, encode_ping_packets]);
