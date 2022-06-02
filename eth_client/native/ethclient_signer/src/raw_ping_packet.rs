@@ -84,7 +84,6 @@ impl RawPingPacket {
     fn encode_body(&self) -> Vec<u8> {
         let mut s = RlpStream::new();
         s.begin_unbounded_list();
-        s.append(&PING);
         s.append(&self.version);
         s.append(&self.from.address);
         s.append(&self.from.udp_port);
@@ -109,6 +108,7 @@ impl RawPingPacket {
     fn sign(&self, hash_body: Vec<u8>, private_key: &H256) -> Vec<u8> {
         let signed_body = ecdsa_sign(&hash_body, &private_key.0);
         let mut sign = RlpStream::new();
+        sign.begin_unbounded_list();
         sign.append(&signed_body.v);
         sign.append(&signed_body.r);
         sign.append(&signed_body.s);
