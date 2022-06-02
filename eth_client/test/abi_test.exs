@@ -15,10 +15,8 @@ defmodule EthClientTest.ABI do
   end
 
   describe "get/1" do
-    @tag bin: @bin, abi: @abi
     test "[SUCCESS] Get an ABI by an abi path", %{} do
-      abi_path = @abi
-      result = ABI.get(abi_path)
+      result = ABI.get(@abi)
 
       assert {:ok,
               [
@@ -52,7 +50,6 @@ defmodule EthClientTest.ABI do
               ]} == result
     end
 
-    @tag bin: @bin, abi: @abi
     test "[SUCCESS] Get an ABI by an ABI address" do
       address = Context.user_account().address
 
@@ -61,7 +58,6 @@ defmodule EthClientTest.ABI do
       assert :ok == code
     end
 
-    @tag bin: @bin, abi: @abi
     test "[FAILURE] Get an ABI by an invalid ABI address" do
       address = '0x0'
 
