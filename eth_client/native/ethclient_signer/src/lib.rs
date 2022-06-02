@@ -4,7 +4,7 @@ use ethereum_types::{H160, H256, U256};
 use raw_transaction::RawTransaction;
 use raw_ping_packet::{RawPingPacket,Endpoint};
 use rlp::Rlp;
-use std::net;
+use std::net::UdpSocket;
 /// Signs an ethereum payload. This library assumes that the provided payload string
 /// is the RLP encoding of the following list:
 /// [nonce, gas_price, gas_limit, recipient, value, data, chain_id].
@@ -48,28 +48,26 @@ pub fn sign_transaction(payload_str: String, private_key: String) -> String {
 }
 
 
-#[rustler::nif]
-pub fn send_ping(_payload_str: String, private_key: String) -> Vec<u8> {
+
+pub fn send_ping(_payload_str: String, private_key: String) {
     let mut pkey_data: [u8; 32] = Default::default();
     pkey_data.copy_from_slice(&hex::decode(private_key).unwrap());
     let pkey = H256(pkey_data);
 
     let raw_ping = RawPingPacket {
         version: 1,
-        from: Endpoint{address: 1, udp_port: 1, tcp_port: 1},
-        to: Endpoint{address: 1, udp_port: 1, tcp_port: 1},
+        from: Endpoint{address: "127.0.0.1".parse::<u32>().unwrap(), udp_port: 34254, tcp_port: 0},
+        to: Endpoint{address: "127.0.0.1".parse::<u32>().unwrap(), udp_port: 30303, tcp_port: 30303},
         expiration: 1
     };
 
-    let mut host = String::with_capacity(128);
-    host.push_str(raw_ping.to.address);
-    host.push_str(":");
-    host.push_str(raw_ping.to.udp_port);
+    let encoded_packet = raw_ping.encode_packet(&pkey);
+    let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
+    socket.send_to(&encoded_packet, "127.0.0.1:30303").expect("couldn't send data");
+    let mut buf = [0; 1000];
+    let (number_of_bytes, src_addr) = socket.recv_from(&mut buf).expect("Didn't receive data");
+    println!("{}", number_of_bytes);
     
-    let socket = net::UdpSocket::bind(host).expect("failed to bind host socket");
-
-
-    return raw_ping.encode_packet(&pkey);
 }
 
-rustler::init!("Elixir.EthClient", [sign_transaction, encode_ping_packets]);
+rustler::init!("Elixir.EthClient", [sign_transaction]);
