@@ -21,40 +21,39 @@ defmodule EthClientTest.ABI do
       result = ABI.get(abi_path)
 
       assert {:ok,
-         [
-           %{
-             "inputs" => [],
-             "name" => "retrieve",
-             "outputs" => [
-               %{"internalType" => "uint256", "name" => "", "type" => "uint256"}
-             ],
-             "stateMutability" => "view",
-             "type" => "function"
-           },
-           %{
-             "inputs" => [
-               %{"internalType" => "uint256", "name" => "num", "type" => "uint256"}
-             ],
-             "name" => "store",
-             "outputs" => [],
-             "stateMutability" => "nonpayable",
-             "type" => "function"
-           },
-           %{
-             "inputs" => [],
-             "name" => "test_function",
-             "outputs" => [
-               %{"internalType" => "uint256", "name" => "", "type" => "uint256"}
-             ],
-             "stateMutability" => "pure",
-             "type" => "function"
-           }
-         ]} == result
+              [
+                %{
+                  "inputs" => [],
+                  "name" => "retrieve",
+                  "outputs" => [
+                    %{"internalType" => "uint256", "name" => "", "type" => "uint256"}
+                  ],
+                  "stateMutability" => "view",
+                  "type" => "function"
+                },
+                %{
+                  "inputs" => [
+                    %{"internalType" => "uint256", "name" => "num", "type" => "uint256"}
+                  ],
+                  "name" => "store",
+                  "outputs" => [],
+                  "stateMutability" => "nonpayable",
+                  "type" => "function"
+                },
+                %{
+                  "inputs" => [],
+                  "name" => "test_function",
+                  "outputs" => [
+                    %{"internalType" => "uint256", "name" => "", "type" => "uint256"}
+                  ],
+                  "stateMutability" => "pure",
+                  "type" => "function"
+                }
+              ]} == result
     end
 
     @tag bin: @bin, abi: @abi
     test "[SUCCESS] Get an ABI by an ABI address" do
-
       address = Context.user_account().address
 
       {code, _response} = ABI.get(address)
@@ -64,7 +63,6 @@ defmodule EthClientTest.ABI do
 
     @tag bin: @bin, abi: @abi
     test "[FAILURE] Get an ABI by an invalid ABI address" do
-
       address = '0x0'
 
       assert_raise MatchError, fn ->
@@ -72,5 +70,4 @@ defmodule EthClientTest.ABI do
       end
     end
   end
-
 end
