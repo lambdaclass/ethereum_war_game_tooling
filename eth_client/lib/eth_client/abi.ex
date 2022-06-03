@@ -16,9 +16,7 @@ defmodule EthClient.ABI do
   def get(abi_path), do: get_local(abi_path)
 
   def to_selector(function_def) do
-    selector = ABI.FunctionSelector.decode(function_def["name"])
-
-    selector
+    ABI.FunctionSelector.decode(function_def["name"])
     |> Map.put(:method_id, function_def["selector"])
     |> Map.put(:state_mutability, function_def["stateMutability"])
   end

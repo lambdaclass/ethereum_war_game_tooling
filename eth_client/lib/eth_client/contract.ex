@@ -42,19 +42,21 @@ defmodule EthClient.Contract do
       |> Macro.underscore()
       |> String.to_atom()
 
-    acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
+      {term, _bind} = Code.eval_quoted(function)
+      acc = Map.put(acc, selector_atom, term)
 
     parse_abi(tail, acc)
   end
 
-  defp parse_abi([%{type: function, method_id: selector} = method_map | tail], acc) do
+  defp parse_abi([%{type: _function, method_id: selector} = method_map | tail], acc) do
     function = build_function_by_hash(method_map)
 
     selector_atom =
       selector
       |> String.to_atom()
 
-    acc = Map.put(acc, selector_atom, Code.eval_quoted(function) |> elem(0))
+      {term, _bind} = Code.eval_quoted(function)
+      acc = Map.put(acc, selector_atom, term)
 
     parse_abi(tail, acc)
   end
@@ -63,7 +65,7 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
-  defp build_function_by_hash(%{method_id: selector, state_mutability: mutability} = method)
+  defp build_function_by_hash(%{method_id: _selector, state_mutability: mutability} = method)
        when mutability in ["pure", "view"] do
     args =
       method.types
@@ -79,7 +81,7 @@ defmodule EthClient.Contract do
     end
   end
 
-  defp build_function_by_hash(%{method_id: selector} = method) do
+  defp build_function_by_hash(%{method_id: _selector} = method) do
     args =
       method
       |> Map.get(:types)
