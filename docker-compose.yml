@@ -52,6 +52,12 @@ services:
       - 43487:43487
     volumes:
       - ./eth_client/:/app/
+    environment:
+      - ETH_API_KEY
+      - ETH_CHAIN_ID
+      - ETH_RPC_HOST
+      - ETH_USER_ADDRESS
+      - ETH_USER_PK
 
   # ----------------------------------------------------------------------------
   # Livebook Frontend
