@@ -81,8 +81,8 @@ defmodule EthClient.Contract do
       |> Macro.underscore()
       |> String.to_atom()
 
-      {term, _bind} = Code.eval_quoted(function)
-      acc = Map.put(acc, selector_atom, term)
+    {term, _bind} = Code.eval_quoted(function)
+    acc = Map.put(acc, selector_atom, term)
 
     parse_abi(tail, acc)
   end
@@ -94,8 +94,8 @@ defmodule EthClient.Contract do
       selector
       |> String.to_atom()
 
-      {term, _bind} = Code.eval_quoted(function)
-      acc = Map.put(acc, selector_atom, term)
+    {term, _bind} = Code.eval_quoted(function)
+    acc = Map.put(acc, selector_atom, term)
 
     parse_abi(tail, acc)
   end
