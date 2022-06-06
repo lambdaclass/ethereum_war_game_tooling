@@ -104,7 +104,7 @@ defmodule EthClient.Contract do
     parse_abi(tail, acc)
   end
 
-  defp build_function_by_hash(%{method_id: _selector, state_mutability: mutability} = method)
+  defp build_function_by_hash(%{state_mutability: mutability} = method)
        when mutability in ["pure", "view"] do
     args =
       method.types

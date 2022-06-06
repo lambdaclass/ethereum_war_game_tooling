@@ -15,7 +15,8 @@ defmodule EthClient.ABI do
   def get(abi_path), do: get_local(abi_path)
 
   def to_selector(function_def) do
-    ABI.FunctionSelector.decode(function_def["name"])
+    function_def["name"]
+    |> ABI.FunctionSelector.decode()
     |> Map.put(:method_id, function_def["selector"])
     |> Map.put(:state_mutability, function_def["stateMutability"])
   end
@@ -36,12 +37,9 @@ defmodule EthClient.ABI do
 
     case System.cmd("python3", [decode_path, bytecode]) do
       {hashes, 0} ->
-        {:ok, funclist} =
-          hashes
-          |> Jason.decode()
-
         funclist =
-          funclist
+          hashes
+          |> Jason.decode!()
           |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
           |> Enum.map(&to_selector/1)
           |> Enum.map(&filter_unnamed/1)
