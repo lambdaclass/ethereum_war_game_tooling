@@ -105,7 +105,7 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke_by_selector(selector, arguments, amount) do
+  def invoke_by_selector(selector, arguments, amount \\ 0) do
     encoded_arguments =
       ABI.TypeEncoder.encode_raw(arguments, selector.types)
       |> Base.encode16(case: :lower)
@@ -115,7 +115,7 @@ defmodule EthClient do
     invoke_with_data(data, amount)
   end
 
-  def invoke(method, arguments, amount) do
+  def invoke(method, arguments, amount \\ 0) do
     data =
       method
       |> ABI.encode(arguments)
