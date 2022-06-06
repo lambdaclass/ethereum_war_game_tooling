@@ -59,6 +59,7 @@ defmodule EthClient do
     contract_address = transaction["contractAddress"]
 
     Context.set_contract_address(contract_address)
+    Context.set_contract_functions(nil)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
 
     log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
