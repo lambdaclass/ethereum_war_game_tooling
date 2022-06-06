@@ -28,18 +28,18 @@ defmodule EthClientTest.Rpc do
         data: data
       )
 
-    tx_hash = EthClient.sign_transaction(raw_tx, caller.private_key) |> IO.inspect(label: "TX HAAAAAAAAAAASH")
+    tx_hash = EthClient.sign_transaction(raw_tx, caller.private_key)
 
-      %{
-        data: data,
-        caller: caller,
-        caller_address: caller_address,
-        contract_address: contract_address,
-        nonce: nonce,
-        gas_limit: gas_limit,
-        raw_tx: raw_tx,
-        tx_hash: tx_hash
-      }
+    %{
+      data: data,
+      caller: caller,
+      caller_address: caller_address,
+      contract_address: contract_address,
+      nonce: nonce,
+      gas_limit: gas_limit,
+      raw_tx: raw_tx,
+      tx_hash: tx_hash
+    }
   end
 
   setup_all do
@@ -65,11 +65,17 @@ defmodule EthClientTest.Rpc do
     end
 
     test "[SUCCESS] Get Transaction by Hash" do
-      assert {:ok, %{}} = Rpc.get_transaction_by_hash("0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019")
+      assert {:ok, %{}} =
+               Rpc.get_transaction_by_hash(
+                 "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+               )
     end
 
     test "[SUCCESS] Get Transaction Receipt" do
-      assert {:ok, %{}} = Rpc.get_transaction_receipt("0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019")
+      assert {:ok, %{}} =
+               Rpc.get_transaction_receipt(
+                 "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+               )
     end
 
     test "[SUCCESS] Get Code", state do
