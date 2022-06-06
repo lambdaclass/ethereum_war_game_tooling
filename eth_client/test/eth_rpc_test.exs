@@ -3,12 +3,11 @@ defmodule EthClientTest.Rpc do
   alias EthClient
   alias EthClient.Context
   alias EthClient.Rpc
-
   @bin_path "../contracts/src/bin/Storage.bin"
 
   defp add_0x(data), do: "0x" <> data
 
-  def transaction_deploy do
+  def transaction_deploy() do
     :ok = EthClient.set_chain("local")
     {:ok, data} = File.read(@bin_path)
     data = add_0x(data)
@@ -49,43 +48,82 @@ defmodule EthClientTest.Rpc do
 
   describe "Rpc Module" do
     test "[SUCCESS] Send raw transaction", state do
-      assert {:ok, tx_hash} = Rpc.send_raw_transaction(state[:tx_hash])
+      {:ok, tx_hash} = Rpc.send_raw_transaction(state[:tx_hash])
+      assert tx_hash =~ "0x"
     end
 
     test "[SUCCESS] Estimate Gas", state do
       transaction_map = %{data: state[:data], from: state[:caller_address], to: nil}
-      assert {:ok, gas} = Rpc.estimate_gas(transaction_map)
+      {:ok, gas} = Rpc.estimate_gas(transaction_map)
+      assert gas =~ "0x"
     end
 
     test "[SUCCESS] Get Transaction Count", state do
-      assert {:ok, count} = Rpc.get_transaction_count(state[:caller_address])
+      {:ok, count} = Rpc.get_transaction_count(state[:caller_address])
+      assert count =~ "0x"
     end
 
     test "[SUCCESS] Gas Price" do
-      assert {:ok, price} = Rpc.gas_price()
+      {:ok, gas_price} = Rpc.gas_price()
+      assert gas_price =~ "0x"
     end
 
     test "[SUCCESS] Get Transaction by Hash" do
-      assert {:ok, %{}} =
-               Rpc.get_transaction_by_hash(
-                 "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
-               )
+      {:ok, transaction_map} =
+        Rpc.get_transaction_by_hash(
+          "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+        )
+
+      assert %{
+               "blockHash" => _,
+               "blockNumber" => _,
+               "from" => _,
+               "gas" => _,
+               "gasPrice" => _,
+               "hash" => _,
+               "input" => _,
+               "nonce" => _,
+               "r" => _,
+               "s" => _,
+               "to" => nil,
+               "transactionIndex" => _,
+               "type" => _,
+               "v" => _,
+               "value" => _
+             } = transaction_map
     end
 
     test "[SUCCESS] Get Transaction Receipt" do
-      assert {:ok, %{}} =
-               Rpc.get_transaction_receipt(
-                 "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
-               )
+      {:ok, receipt_map} =
+        Rpc.get_transaction_receipt(
+          "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+        )
+
+      assert %{
+               "blockHash" => _blockhash,
+               "blockNumber" => _blocknumber,
+               "contractAddress" => _contactAdress,
+               "cumulativeGasUsed" => _cumulativeGasUsed,
+               "effectiveGasPrice" => _effectiveGasPrice,
+               "from" => _from,
+               "gasUsed" => _gasUser,
+               "logs" => [],
+               "logsBloom" => _logsBloom,
+               "status" => _status,
+               "to" => nil,
+               "transactionHash" => _transactionHash,
+               "transactionIndex" => _transactionIndex,
+               "type" => _type
+             } = receipt_map
     end
 
     test "[SUCCESS] Get Code", state do
-      assert {:ok, "0x"} = Rpc.get_code(state[:caller_address])
+      assert {:ok, "0x"} == Rpc.get_code(state[:caller_address])
     end
 
     test "[SUCCESS] Get Call", state do
       call_map = %{}
-      assert {:ok, "0x"} = Rpc.call(call_map)
+      assert {:ok, "0x"} == Rpc.call(call_map)
     end
 
     test "[SUCCESS] Get Logs" do
@@ -93,7 +131,8 @@ defmodule EthClientTest.Rpc do
     end
 
     test "[SUCCESS] Get Balance", state do
-      assert {:ok, balance} = Rpc.get_balance(state[:caller_address])
+      {:ok, balance} = Rpc.get_balance(state[:caller_address])
+      assert balance =~ "0x"
     end
   end
 end
