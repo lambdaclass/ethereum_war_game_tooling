@@ -1,6 +1,5 @@
 defmodule EthClient.ABI do
-  @moduledoc """
-  """
+  @moduledoc false
   alias EthClient.Context
   alias EthClient.Rpc
 

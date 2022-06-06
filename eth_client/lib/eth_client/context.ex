@@ -1,4 +1,5 @@
 defmodule EthClient.Context do
+  @moduledoc false
   use Agent
 
   alias EthClient.Account
@@ -16,11 +17,13 @@ defmodule EthClient.Context do
   def contract, do: get(:contract)
   def etherscan_api_key, do: get(:etherscan_api_key)
   def net_proxy, do: get(:net_proxy)
+  def infura_api_key, do: get(:infura_api_key)
 
   def set_rpc_host(new_host), do: set(:rpc_host, new_host)
   def set_chain_id(new_chain_id), do: set(:chain_id, new_chain_id)
   def set_user_account(new_user_account), do: set(:user_account, new_user_account)
   def set_net_proxy(proxy), do: set(:net_proxy, proxy)
+  def set_infura_api_key(api_key), do: set(:infura_api_key, api_key)
 
   def set_contract_address(new_address) do
     IEx.configure(default_prompt: "#{String.slice(new_address, 0..5)}>")

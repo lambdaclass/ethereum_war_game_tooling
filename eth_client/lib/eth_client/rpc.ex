@@ -1,6 +1,5 @@
 defmodule EthClient.Rpc do
-  @moduledoc """
-  """
+  @moduledoc false
 
   alias EthClient.Context
   use Tesla
