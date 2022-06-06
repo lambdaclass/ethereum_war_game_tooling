@@ -1,13 +1,14 @@
 defmodule EthClientTest.Rpc do
   use ExUnit.Case
+  alias EthClient
   alias EthClient.Context
   alias EthClient.Rpc
-  alias EthClient
+
   @bin_path "../contracts/src/bin/Storage.bin"
 
   defp add_0x(data), do: "0x" <> data
 
-  def transaction_deploy() do
+  def transaction_deploy do
     :ok = EthClient.set_chain("local")
     {:ok, data} = File.read(@bin_path)
     data = add_0x(data)
