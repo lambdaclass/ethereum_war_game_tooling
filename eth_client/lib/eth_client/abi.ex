@@ -1,9 +1,55 @@
 defmodule EthClient.ABI do
   @moduledoc false
   alias EthClient.Context
+  alias EthClient.Rpc
 
-  def get("0x" <> _ = address), do: get_etherscan(address)
+  # get whether it's an etherscan-linked bc: get_etherscan_api_key...
+  def get("0x" <> _ = address) do
+    if Context.etherscan_api_key() do
+      get_etherscan(address)
+    else
+      get_non_etherscan(address)
+    end
+  end
+
   def get(abi_path), do: get_local(abi_path)
+
+  def to_selector(function_def) do
+    function_def["name"]
+    |> ABI.FunctionSelector.decode()
+    |> Map.put(:method_id, function_def["selector"])
+    |> Map.put(:state_mutability, function_def["stateMutability"])
+  end
+
+  defp filter_unnamed(function_def) do
+    "0x" <> function_hash = function_def.method_id
+    unknown_name = "unknown" <> function_hash
+
+    case Map.get(function_def, :function) do
+      ^unknown_name -> Map.delete(function_def, :function)
+      _ -> function_def
+    end
+  end
+
+  def get_non_etherscan(address) do
+    decode_path = Application.app_dir(:eth_client, "priv/decompile.py")
+    {:ok, bytecode} = Rpc.get_code(address)
+
+    case System.cmd("python3", [decode_path, bytecode]) do
+      {hashes, 0} ->
+        funclist =
+          hashes
+          |> Jason.decode!()
+          |> Enum.filter(fn %{"selector" => hash} -> hash != "_fallback()" end)
+          |> Enum.map(&to_selector/1)
+          |> Enum.map(&filter_unnamed/1)
+
+        {:ok, funclist}
+
+      {_, _} ->
+        {:error, :abi_unavailable}
+    end
+  end
 
   defp get_etherscan(address) do
     api_key = Context.etherscan_api_key()

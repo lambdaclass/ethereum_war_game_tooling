@@ -79,6 +79,21 @@ defmodule EthClient do
     |> Rpc.call()
   end
 
+  def call_by_selector(selector, arguments) do
+    encoded_arguments =
+      ABI.TypeEncoder.encode_raw(arguments, selector.types)
+      |> Base.encode16(case: :lower)
+
+    data = selector.method_id <> encoded_arguments
+
+    %{
+      from: Context.user_account().address,
+      to: Context.contract().address,
+      data: data
+    }
+    |> Rpc.call()
+  end
+
   def get_balance(address) do
     {balance, _lead} =
       Rpc.get_balance(address)
@@ -88,12 +103,27 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
+  def invoke_by_selector(selector, arguments, amount \\ 0) do
+    encoded_arguments =
+      ABI.TypeEncoder.encode_raw(arguments, selector.types)
+      |> Base.encode16(case: :lower)
+
+    data = selector.method_id <> encoded_arguments
+
+    invoke_with_data(data, amount)
+  end
+
   def invoke(method, arguments, amount \\ 0) do
     data =
-      ABI.encode(method, arguments)
+      method
+      |> ABI.encode(arguments)
       |> Base.encode16(case: :lower)
       |> add_0x()
 
+    invoke_with_data(data, amount)
+  end
+
+  defp invoke_with_data(data, amount) do
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
     contract_address = Context.contract().address
