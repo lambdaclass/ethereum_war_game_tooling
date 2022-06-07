@@ -3,42 +3,20 @@ defmodule EthClientTest.Rpc do
   alias EthClient
   alias EthClient.Context
   alias EthClient.Rpc
-  @bin_path "../contracts/src/bin/Storage.bin"
 
-  defp add_0x(data), do: "0x" <> data
+  @bin_path "../contracts/src/bin/Storage.bin"
 
   def transaction_deploy() do
     :ok = EthClient.set_chain("local")
     {:ok, data} = File.read(@bin_path)
-    data = add_0x(data)
+    data = "0x" <> data
 
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
-    contract_address = Context.contract().address
-
-    nonce = EthClient.nonce(caller.address)
-    gas_limit = EthClient.gas_limit(data, caller_address)
-
-    raw_tx =
-      EthClient.build_raw_tx(
-        0,
-        nonce,
-        gas_limit,
-        EthClient.gas_price(),
-        data: data
-      )
-
-    tx_hash = EthClient.sign_transaction(raw_tx, caller.private_key)
 
     %{
       data: data,
-      caller: caller,
-      caller_address: caller_address,
-      contract_address: contract_address,
-      nonce: nonce,
-      gas_limit: gas_limit,
-      raw_tx: raw_tx,
-      tx_hash: tx_hash
+      caller_address: caller_address
     }
   end
 
@@ -48,7 +26,20 @@ defmodule EthClientTest.Rpc do
 
   describe "Rpc Module" do
     test "[SUCCESS] Send raw transaction", state do
-      {:ok, tx_hash} = Rpc.send_raw_transaction(state[:tx_hash])
+      caller = Context.user_account()
+
+      raw_tx =
+        EthClient.build_raw_tx(
+          0,
+          EthClient.nonce(caller.address),
+          EthClient.gas_limit(state[:data], caller.address),
+          EthClient.gas_price(),
+          data: state[:data]
+        )
+
+      tx_hash = EthClient.sign_transaction(raw_tx, Context.user_account().private_key)
+
+      {:ok, tx_hash} = Rpc.send_raw_transaction(tx_hash)
       assert tx_hash =~ "0x"
     end
 
