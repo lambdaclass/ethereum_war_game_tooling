@@ -17,7 +17,16 @@ defmodule EthClient.Rpc do
   def gas_price, do: send_request("eth_gasPrice", [])
   def get_transaction_by_hash(tx_hash), do: send_request("eth_getTransactionByHash", [tx_hash])
   def get_transaction_receipt(tx_hash), do: send_request("eth_getTransactionReceipt", [tx_hash])
-  def get_code(contract), do: send_request("eth_getCode", [contract, "latest"])
+
+  def get_code(contract) do
+    {:ok, result} = send_request("eth_getCode", [contract, "latest"])
+
+    case result do
+      "0x" -> {:error, "The contract you are trying to get the code is not deployed"}
+      _valid -> {:ok, result}
+    end
+  end
+
   def call(call_map), do: send_request("eth_call", [call_map, "latest"])
 
   def get_logs(log_map), do: send_request("eth_getLogs", [log_map])
