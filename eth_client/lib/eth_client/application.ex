@@ -13,7 +13,8 @@ defmodule EthClient.Application do
     initial_context = get_initial_context()
 
     children = [
-      {EthClient.Context, initial_context}
+      {EthClient.Context, initial_context},
+      {EthClient.NodesList, EthClient.NodesList.DNS.Storage}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
