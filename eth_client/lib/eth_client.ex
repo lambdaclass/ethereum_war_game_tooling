@@ -88,7 +88,36 @@ defmodule EthClient do
     wei_to_ether(balance)
   end
 
-  def invoke(method, arguments, amount \\ 0) do
+  @doc """
+  Transfer ether to the contract address.
+  """
+  def transfer(amount \\ 0) do
+    # According to the official documentation, the max amount of gas for the receive function is 2300.
+    # https://docs.soliditylang.org/en/v0.8.12/contracts.html#receive-ether-function
+    # And the tool we use to estimate gas will break trying to estimate with an empty function.
+    # Also, it is necessary to send an empty calldata.
+    gas_limit = 2300 * 10
+    data = "0x00000000"
+
+    caller = Context.user_account()
+    caller_address = String.downcase(caller.address)
+    contract_address = Context.contract().address
+
+    {:ok, _tx_hash} = transact(data, gas_limit, amount, caller, caller_address, contract_address)
+  end
+
+  @doc """
+  Call a payable function,
+  opts is a map that accepts the following keys as atoms:
+   - amount: number of Ether to be sended, default to 0.
+   - gas_limit: amount of gas limit for the transaction. If this parameter is not passed,
+      the estimated calculation of gas necessary for the transaction is made.
+   e.g.: %{
+     amount: 0.01,
+     gas_limit: 150_000
+   }
+  """
+  def invoke(method, arguments, opts \\ %{}) do
     data =
       ABI.encode(method, arguments)
       |> Base.encode16(case: :lower)
@@ -98,33 +127,16 @@ defmodule EthClient do
     caller_address = String.downcase(caller.address)
     contract_address = Context.contract().address
 
-    ## This is assuming the caller passes `amount` in eth
-    amount = floor(amount * 1_000_000_000_000_000_000)
-
-    nonce = nonce(caller.address)
     # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address) * 2
+    gas_limit =
+      if Map.has_key?(opts, :gas_limit) do
+        opts[:gas_limit]
+      else
+        gas_limit(data, caller_address, contract_address) * 2
+      end
 
-    raw_tx =
-      build_raw_tx(amount, nonce, gas_limit, gas_price(),
-        recipient: contract_address,
-        data: data
-      )
-
-    {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
-      |> Rpc.send_raw_transaction()
-
-    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
-    Logger.info("Waiting for confirmation...")
-
-    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
-
-    Logger.info("Transaction confirmed!")
-
-    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
-
-    {:ok, tx_hash}
+    amount = Map.get(opts, :amount, 0)
+    {:ok, _tx_hash} = transact(data, gas_limit, amount, caller, caller_address, contract_address)
   end
 
   def contract_deploy?(transaction) when is_number(transaction) do
@@ -208,6 +220,34 @@ defmodule EthClient do
 
   defp log_transaction_info(chain, contract_address),
     do: Logger.info("Check it out here: https://#{chain}etherscan.io/address/#{contract_address}")
+
+  defp transact(data, gas_limit, amount, caller, caller_address, contract_address) do
+    ## This is assuming the caller passes `amount` in eth
+    amount = floor(amount * 1_000_000_000_000_000_000)
+
+    nonce = nonce(caller.address)
+
+    raw_tx =
+      build_raw_tx(amount, nonce, gas_limit, gas_price(),
+        recipient: contract_address,
+        data: data
+      )
+
+    {:ok, tx_hash} =
+      sign_transaction(raw_tx, caller.private_key)
+      |> Rpc.send_raw_transaction()
+
+    Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
+    Logger.info("Waiting for confirmation...")
+
+    {:ok, _transaction} = Rpc.wait_for_confirmation(tx_hash)
+
+    Logger.info("Transaction confirmed!")
+
+    log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
+
+    {:ok, tx_hash}
+  end
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
