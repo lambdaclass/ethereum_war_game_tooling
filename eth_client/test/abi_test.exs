@@ -53,9 +53,7 @@ defmodule EthClientTest.ABI do
     test "[SUCCESS] Get an ABI by an ABI address" do
       address = Context.user_account().address
 
-      {code, _response} = ABI.get(address)
-
-      assert :ok == code
+      assert {:ok, _response} = ABI.get(address)
     end
 
     test "[FAILURE] Get an ABI by an invalid ABI address" do
