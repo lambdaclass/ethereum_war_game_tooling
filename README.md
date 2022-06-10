@@ -150,8 +150,51 @@ Node 2 miner account:
 - Address: `0x77b648683cde1d69544ed6f4f7204e8d51c324db`
 - Private key: `f71d3dd32649f9bdfc8e4a5232d3f245860243756f96fbe070c31fc44c9293f4`
 
+## Build a contract with Forge
 
-## Test contract
+Forge belongs to Foundry, wich it’s a reimplementation of dapptools, a command line tools and smart contract libraries for Ethereum smart contract development. Forge lets us write our tests in Solidity.
+
+### Dependencies
+
+**Install Rust**
+
+```
+asdf install rust 1.59.0
+```
+
+**Install Foundry**
+
+```
+curl -L https://foundry.paradigm.xyz | bash
+```
+
+Then run `foundryup` in your terminal
+
+```
+foundryup
+```
+
+### Build a contract
+
+To build contracts you need to run:
+
+```
+forge build --contracts contracts/src/contract.sol
+```
+
+> We have a proof contract to test that `contracts/src/simplestorage.sol`
+
+### Test contracts
+
+To test a contract you need to run:
+
+```
+forge test --contracts contracts/src/test/contract.t.sol
+```
+
+> We have a proof test contract to test that `contracts/src/simplestorage.t.sol`
+
+## Deploy test contract
 
 You can then deploy the test contract with
 
