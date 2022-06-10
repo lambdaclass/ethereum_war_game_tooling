@@ -6,7 +6,7 @@ defmodule EthClient.Context do
   alias EthClient.Contract
   require Logger
 
-  def start_link(%{chain_id: _chain_id, rpc_host: _rpc_host, user_account: %Account{}} = config) do
+  def start_link(config) do
     Agent.start_link(fn -> config end, name: __MODULE__)
   end
 
