@@ -112,7 +112,7 @@ defmodule EthClientTest.Rpc do
       assert {:ok, "0x"} == Rpc.get_code(state[:caller_address])
     end
 
-    test "[SUCCESS] Get Call", state do
+    test "[SUCCESS] Get Call" do
       call_map = %{}
       assert {:ok, "0x"} == Rpc.call(call_map)
     end

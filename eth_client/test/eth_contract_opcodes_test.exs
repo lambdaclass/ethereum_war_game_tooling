@@ -1,6 +1,6 @@
 defmodule EthClientTest.Contract.Opcodes do
   use ExUnit.Case
-  doctest EthClient
+  #doctest EthClient
   alias EthClient.Contract.Opcodes
   import ExUnit.CaptureIO
 

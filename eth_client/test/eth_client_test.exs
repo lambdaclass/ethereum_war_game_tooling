@@ -1,4 +1,4 @@
 defmodule EthClientTest do
   use ExUnit.Case
-  doctest EthClient
+  #doctest EthClient
 end
