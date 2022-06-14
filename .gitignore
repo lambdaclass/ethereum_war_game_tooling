@@ -1,3 +1,4 @@
 cache/
 out/
 .local/
+erl_crash.dump

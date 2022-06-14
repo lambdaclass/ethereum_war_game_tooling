@@ -1,6 +1,4 @@
 defmodule EthClient.Contract.Opcodes do
-  alias EthClient.Rpc
-
   @moduledoc """
    This module provides a function to turn any valid EVM byte code
    into opcodes and a function to retrieve a contract and turn it into
