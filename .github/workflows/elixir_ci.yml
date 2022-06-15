@@ -75,7 +75,7 @@ jobs:
       run: |
         source .envrc
         cd eth_client/
-        mix test
+        mix test --seed 0
     - name: Code Coverage
       run: |
         source .envrc
