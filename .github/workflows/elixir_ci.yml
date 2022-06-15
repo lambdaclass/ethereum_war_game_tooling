@@ -69,8 +69,7 @@ jobs:
         ETH_USER_PK: ${{ secrets.ETH_USER_PK }}
       run: |
         cd eth_client/
-        mix test
-
+        mix test --seed 0
     - name: Code Coverage
       env:
         ETH_API_KEY: ${{ secrets.ETH_API_KEY }}
