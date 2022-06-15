@@ -21,19 +21,7 @@ jobs:
       matrix:
         elixir: [1.13.0]
         otp: [24.1.7]
-    services:
-      db:
-        image: postgres:12-alpine
-        ports: ["5432:5432"]
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: eth_war_game_tool_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Elixir
@@ -71,14 +59,25 @@ jobs:
         cd eth_client/
         mkdir -p priv/plts
         mix dialyzer --plt
+
     - name: Run tests
+      env:
+        ETH_API_KEY: ${{ secrets.ETH_API_KEY }}
+        ETH_CHAIN_ID: ${{ secrets.ETH_CHAIN_ID }}
+        ETH_RPC_HOST: ${{ secrets.ETH_RPC_HOST }}
+        ETH_USER_ADDRESS: ${{ secrets.ETH_USER_ADDRESS }}
+        ETH_USER_PK: ${{ secrets.ETH_USER_PK }}
       run: |
-        source .envrc
         cd eth_client/
         mix test --seed 0
     - name: Code Coverage
+      env:
+        ETH_API_KEY: ${{ secrets.ETH_API_KEY }}
+        ETH_CHAIN_ID: ${{ secrets.ETH_CHAIN_ID }}
+        ETH_RPC_HOST: ${{ secrets.ETH_RPC_HOST }}
+        ETH_USER_ADDRESS: ${{ secrets.ETH_USER_ADDRESS }}
+        ETH_USER_PK: ${{ secrets.ETH_USER_PK }}
       run: |
-        source .envrc
         cd eth_client/
         mix coveralls
     - name: Run dialyzer

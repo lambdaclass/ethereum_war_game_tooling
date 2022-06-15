@@ -20,14 +20,6 @@ defmodule EthClient do
   @local_host_chain_id 1234
   @local_host_rpc "http://localhost:8545"
 
-  # Modify the code so that the only thing we do in Rust is the EC signature and Keccak hashing
-  # View the state of a contract (all its variables, etc). This will require parsing the ABI
-  # Add the ability to check if a transaction is a contract deployment or not
-  # Check balance
-  # Fix gas limit
-  # Change shell text based on context
-  # Get list of nodes
-
   def deploy(bin_path) do
     {:ok, data} = File.read(bin_path)
     data = add_0x(data)
@@ -59,6 +51,7 @@ defmodule EthClient do
     contract_address = transaction["contractAddress"]
 
     Context.set_contract_address(contract_address)
+    Context.set_contract_functions(nil)
     Logger.info("Contract deployed, address: #{contract_address} Current contract updated")
 
     log_transaction_info(@etherscan_supported_chains[Context.chain_id()], contract_address)
