@@ -220,4 +220,5 @@ defmodule EthClient do
 
   def sign_transaction(_raw_transaction, _private_key), do: :erlang.nif_error(:nif_not_loaded)
   def send_ping(), do: :erlang.nif_error(:nif_not_loaded)
+  def sign_raw_bytes(_raw_bytes, _private_key), do: :erlang.nif_error(:nif_not_loaded)
 end

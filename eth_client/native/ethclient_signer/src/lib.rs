@@ -6,6 +6,8 @@ use raw_ping_packet::{RawPingPacket,Endpoint};
 use rlp::Rlp;
 use std::net::{UdpSocket, Ipv4Addr};
 use std::time::{SystemTime, Duration};
+use secp256k1::{key::SecretKey, Message, Secp256k1};
+use tiny_keccak::{Hasher, Keccak};
 
 /// Signs an ethereum payload. This library assumes that the provided payload string
 /// is the RLP encoding of the following list:
@@ -48,7 +50,6 @@ pub fn sign_transaction(payload_str: String, private_key: String) -> String {
 
     return transaction_prefix + &signed_payload;
 }
-
 
 fn expiration() -> u64 {
     let time = SystemTime::now().checked_add(Duration::from_secs(20)).unwrap().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
@@ -95,4 +96,36 @@ pub fn send_ping() -> Vec<u8> {
     encoded_packet
 }
 
-rustler::init!("Elixir.EthClient", [sign_transaction, send_ping]);
+#[rustler::nif]
+pub fn sign_raw_bytes(raw_bytes: Vec<u8>, private_key: String) -> Vec<u8> {
+    let mut pkey_data: [u8; 32] = Default::default();
+    pkey_data.copy_from_slice(&hex::decode(private_key).unwrap());
+    ecdsa_sign(&raw_bytes, &pkey_data)
+}
+
+fn ecdsa_sign(payload: &[u8], private_key: &[u8]) -> Vec<u8> {
+    let s = Secp256k1::signing_only();
+    let hashed = keccak256_hash(payload);
+    let msg = Message::from_slice(&hashed).unwrap();
+    let key = SecretKey::from_slice(private_key).unwrap();
+    let (v, sig_bytes) = s.sign_recoverable(&msg, &key).serialize_compact();
+
+    let mut r = sig_bytes[0..32].to_vec();
+    let mut s = sig_bytes[32..64].to_vec();
+    let mut ret : Vec<u8> = vec![];
+    ret.append(&mut r);
+    ret.append(&mut s);
+    ret.push(v.to_i32() as u8);
+
+    ret
+}
+
+fn keccak256_hash(bytes: &[u8]) -> Vec<u8> {
+    let mut hasher = Keccak::v256();
+    hasher.update(bytes);
+    let mut resp: [u8; 32] = Default::default();
+    hasher.finalize(&mut resp);
+    resp.iter().cloned().collect()
+}
+
+rustler::init!("Elixir.EthClient", [sign_transaction, sign_raw_bytes, send_ping]);
