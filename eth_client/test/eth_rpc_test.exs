@@ -7,7 +7,7 @@ defmodule EthClientTest.Rpc do
   @bin_path "../contracts/src/bin/Storage.bin"
 
   def transaction_deploy do
-    :ok = EthClient.set_chain("local")
+    :ok = EthClient.set_chain("rinkeby")
     {:ok, data} = File.read(@bin_path)
     data = "0x" <> data
 
