@@ -112,7 +112,7 @@ defmodule EthClientTest.Rpc do
     end
 
     test "[SUCCESS] Get Logs" do
-      assert {:ok, []} == Rpc.get_logs(%{})
+      assert {:ok, list} == Rpc.get_logs(%{})
     end
 
     test "[SUCCESS] Get Balance", state do
