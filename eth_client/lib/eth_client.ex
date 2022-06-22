@@ -157,7 +157,7 @@ defmodule EthClient do
     Logger.info("#{chain_name} is not a supported chain.")
   end
 
-  defp nonce(address) do
+  def nonce(address) do
     {nonce, ""} =
       Rpc.get_transaction_count(address)
       |> remove_leading_0x()
@@ -166,7 +166,7 @@ defmodule EthClient do
     nonce
   end
 
-  defp gas_limit(data, caller_address, recipient_address \\ nil) do
+  def gas_limit(data, caller_address, recipient_address \\ nil) do
     {gas, ""} =
       %{
         from: caller_address,
@@ -180,7 +180,7 @@ defmodule EthClient do
     gas
   end
 
-  defp gas_price do
+  def gas_price do
     {gas_price, ""} =
       Rpc.gas_price()
       |> remove_leading_0x()
@@ -194,7 +194,7 @@ defmodule EthClient do
 
   defp wei_to_ether(amount), do: amount / 1.0e19
 
-  defp build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
+  def build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
     recipient = opts[:recipient]
     data = opts[:data]
     chain_id = Context.chain_id()
