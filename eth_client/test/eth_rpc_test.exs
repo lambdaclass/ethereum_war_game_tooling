@@ -63,7 +63,7 @@ defmodule EthClientTest.Rpc do
     test "[SUCCESS] Get Transaction by Hash" do
       {:ok, transaction_map} =
         Rpc.get_transaction_by_hash(
-          "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+          "0x3c249fcbb9ac3095cbe8196e6dba5d0aa0d868f2ebc7c857c8a22144fcbad07c"
         )
 
       assert %{
@@ -77,7 +77,7 @@ defmodule EthClientTest.Rpc do
                "nonce" => _,
                "r" => _,
                "s" => _,
-               "to" => nil,
+               "to" => _to,
                "transactionIndex" => _,
                "type" => _,
                "v" => _,
@@ -88,16 +88,23 @@ defmodule EthClientTest.Rpc do
     test "[SUCCESS] Get Transaction Receipt" do
       {:ok, receipt_map} =
         Rpc.get_transaction_receipt(
-          "0xf6bebadd44e6d5e1446f6456ae4c4fcb8309631747714199e505aa4cec1c2019"
+          "0x3c249fcbb9ac3095cbe8196e6dba5d0aa0d868f2ebc7c857c8a22144fcbad07c"
         )
 
       assert %{
                "blockHash" => _blockhash,
                "blockNumber" => _blocknumber,
+               "contractAddress" => _contactAdress,
+               "cumulativeGasUsed" => _cumulativeGasUsed,
+               "effectiveGasPrice" => _effectiveGasPrice,
                "from" => _from,
+               "gasUsed" => _gasUser,
                "logs" => [],
+               "logsBloom" => _logsBloom,
                "status" => _status,
-               "to" => nil,
+               "to" => _to,
+               "transactionHash" => _transactionHash,
+               "transactionIndex" => _transactionIndex,
                "type" => _type
              } = receipt_map
     end
@@ -112,7 +119,7 @@ defmodule EthClientTest.Rpc do
     end
 
     test "[SUCCESS] Get Logs" do
-      assert {:ok, list} == Rpc.get_logs(%{})
+      assert {:ok, _log_list} == Rpc.get_logs(%{})
     end
 
     test "[SUCCESS] Get Balance", state do
