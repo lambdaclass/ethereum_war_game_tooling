@@ -8,6 +8,7 @@ defmodule EthClientTest.Rpc do
 
   def transaction_deploy do
     :ok = EthClient.set_chain("rinkeby")
+    Context.set_rpc_host("https://rinkeby.infura.io/v3/56725ef0a57448cdb2c5dc36c277460b")
     {:ok, data} = File.read(@bin_path)
     data = "0x" <> data
 
