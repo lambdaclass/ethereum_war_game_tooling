@@ -94,17 +94,10 @@ defmodule EthClientTest.Rpc do
       assert %{
                "blockHash" => _blockhash,
                "blockNumber" => _blocknumber,
-               "contractAddress" => _contactAdress,
-               "cumulativeGasUsed" => _cumulativeGasUsed,
-               "effectiveGasPrice" => _effectiveGasPrice,
                "from" => _from,
-               "gasUsed" => _gasUser,
                "logs" => [],
-               "logsBloom" => _logsBloom,
                "status" => _status,
                "to" => _to,
-               "transactionHash" => _transactionHash,
-               "transactionIndex" => _transactionIndex,
                "type" => _type
              } = receipt_map
     end
