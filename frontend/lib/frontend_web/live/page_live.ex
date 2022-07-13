@@ -2,6 +2,7 @@ defmodule FrontendWeb.PageLive do
   use Phoenix.LiveView
 
   alias Frontend.Contract
+  alias Frontend.Method
 
   def render(assigns) do
     FrontendWeb.PageView.render("form.html", assigns)
@@ -25,6 +26,7 @@ defmodule FrontendWeb.PageLive do
 
     EthClient.Context.set_chain_id(assigns[:chain_id])
     EthClient.Context.set_rpc_host(assigns[:chain_url])
+    EthClient.Context.set_contract_address(latest_contract.address)
 
     EthClient.Context.set_user_account(%EthClient.Account{
       address: assigns[:account_address],
@@ -48,8 +50,7 @@ defmodule FrontendWeb.PageLive do
     {:ok, parsed_abi} = parse_abi(abi)
 
     contract =
-      %{address: address, functions: functions} =
-      EthClient.deploy(contract_bin, contract_abi)
+      %{address: address, functions: functions} = EthClient.deploy(contract_bin, contract_abi)
 
     {:ok, _contract} =
       Contract.create(%{
@@ -65,22 +66,44 @@ defmodule FrontendWeb.PageLive do
   end
 
   def handle_event("contract_change", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "call_method",
+        %{"method_info" => %{"method" => method_name} = method_params},
+        socket
+      ) do
+    method = socket.assigns.parsed_abi[method_name]
+    {:ok, result} = call_or_invoke(method, method_params) |> IO.inspect()
 
     {:noreply, socket}
   end
 
-  def handle_event("call_method", %{"method" => method_name} = params, socket) do
-    abi = socket.assigns.parsed_abi
-    abi[method_name]
-    IO.inspect(params)
-    IO.inspect(socket)
+  defp call_or_invoke(%{mutability: mutability} = method, params)
+       when mutability in ["view", "pure"] do
+    arguments =
+      Enum.map(method.arguments, fn {argument_name, _argument_type} ->
+        params[Atom.to_string(argument_name)]
+      end)
 
-    {:noreply, socket}
+    Method.call(method, arguments)
   end
 
-  ## Reify methods into a struct
-  ## The struct should hold the arguments with their names and types and the order
-  ## in which they are to be passed
+  defp call_or_invoke(method, params) do
+    arguments =
+      Enum.map(method.arguments, fn {argument_name, argument_type} ->
+        params[Atom.to_string(argument_name)] |> parse_argument(argument_type)
+      end)
+
+    amount = String.to_integer(params["Amount"])
+
+    Method.invoke(method, arguments, amount)
+  end
+
+  defp parse_argument(argument, "uint"), do: String.to_integer(argument)
+  defp parse_argument(argument, "uint256"), do: String.to_integer(argument)
+  defp parse_argument(argument, _type), do: argument
 
   ## The context goes away, all transient state is stored in the LiveView process
   ## Contracts and config are stored in postgres, you can change the state of the liveview process
@@ -94,18 +117,12 @@ defmodule FrontendWeb.PageLive do
   defp parse_abi([], acc), do: {:ok, acc}
 
   defp parse_abi([%{"type" => "function"} = method_map | tail], acc) do
-    method = %{
-      state_mutability: method_map["stateMutability"],
-      inputs: method_map["inputs"],
-      name: method_map["name"],
-      # What's the difference between type and internal type?
-      input_types: Enum.map(method_map["inputs"], fn input -> input["internalType"] end)
-    }
+    arguments =
+      Enum.reduce(method_map["inputs"], [], fn input, acc ->
+        acc ++ Keyword.new([{String.to_atom(input["name"]), input["internalType"]}])
+      end)
 
-    acc = Map.put(acc, method_map["name"], method)
-
-    function = build_function(method)
-    method = Map.put(method, :function, Code.eval_quoted(function) |> elem(0))
+    method = Method.new(method_map["name"], arguments, method_map["stateMutability"])
     acc = Map.put(acc, method_map["name"], method)
 
     parse_abi(tail, acc)
@@ -113,28 +130,5 @@ defmodule FrontendWeb.PageLive do
 
   defp parse_abi([_head | tail], acc) do
     parse_abi(tail, acc)
-  end
-
-  defp build_function(%{state_mutability: mutability} = method)
-       when mutability in ["pure", "view"] do
-    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
-    method_signature = "#{method.name}(#{Enum.join(method.input_types, ",")})"
-
-    quote do
-      fn unquote_splicing(args) ->
-        EthClient.call(unquote(method_signature), unquote(args))
-      end
-    end
-  end
-
-  defp build_function(method) do
-    args = Macro.generate_arguments(length(method.inputs), __MODULE__)
-    method_signature = "#{method.name}(#{Enum.join(method.input_types, ",")})"
-
-    quote do
-      fn unquote_splicing(args), amount ->
-        EthClient.invoke(unquote(method_signature), unquote(args), amount)
-      end
-    end
   end
 end

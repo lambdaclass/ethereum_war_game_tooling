@@ -28,28 +28,29 @@ Current Chain URL: <%= @chain_url %>
 Current Contract: <%= @contract_address %>
 <%= for {method_name, method} <- @parsed_abi  do %>
 
-<%= fc = form_for String.to_atom(method_name), "submit", [phx_submit: "call_method"] %>
+<%= fc = form_for :method_info, "submit", [phx_submit: "call_method"] %>
 
 <%= method_name %>
-<%= for input <- method.inputs do %>
+<%= text_input fc, "method", class: "input", hidden: true, value: method_name %>
+<%= for {argument_name, _argument_type} <- method.arguments do %>
   <div class="field">
-    <% input_name = input["name"] %>
-    <%= label fc, String.to_atom(input_name), input_name, class: "label" %>
-    <%= text_input fc, input_name, class: "input" %>
+    <%= label fc, argument_name, Atom.to_string(argument_name), class: "label" %>
+    <%= text_input fc, Atom.to_string(argument_name), class: "input" %>
   </div>
 <% end %>
 
-<%= if method.state_mutability not in ["view", "pure"] do %>
+<%= if method.mutability not in ["view", "pure"] do %>
   <div class="field">
-    <%= label fc, :amount, "Amount Sent", class: "label" %>
-    <%= text_input fc, "Amount Sent", class: "input" %>
+    <%= label fc, :amount, "Amount", class: "label" %>
+    <%= text_input fc, "Amount", class: "input" %>
   </div>
 <% end %>
 
 <div class="buttons">
-  <%= submit method_button_name(method.state_mutability), class: "button" %>
+  <%= submit method_button_name(method.mutability), class: "button" %>
 </div>
 
+</form>
 <br>
 <% end %>
 
