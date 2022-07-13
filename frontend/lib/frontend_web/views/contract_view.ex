@@ -1,4 +1,4 @@
-defmodule FrontendWeb.PageView do
+defmodule FrontendWeb.ContractView do
   use FrontendWeb, :view
 
   def method_button_name(mutability) when mutability in ["view", "pure"], do: "Call"

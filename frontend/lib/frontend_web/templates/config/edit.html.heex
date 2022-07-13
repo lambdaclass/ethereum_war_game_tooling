@@ -1,0 +1,5 @@
+<h1>Edit Config</h1>
+
+<%= render "form.html", Map.put(assigns, :action, Routes.config_path(@conn, :update, @config)) %>
+
+<span><%= link "Back", to: Routes.config_path(@conn, :index) %></span>

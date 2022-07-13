@@ -6,9 +6,6 @@ defmodule EthClient.Contract do
   alias EthClient.Rpc
 
   defstruct [:address, :functions]
-
-  def get_functions, do: EthClient.Context.contract().functions
-
   def get_functions(address_or_path) do
     with {:ok, abi} <- ABI.get(address_or_path) do
       parse_abi(abi)
@@ -18,9 +15,8 @@ defmodule EthClient.Contract do
   @doc """
   Using the contract in the context, returns the current state of the contract.
   """
-  @spec state :: map()
-  def state do
-    with {:ok, abi} <- ABI.get(EthClient.Context.contract().address) do
+  def state(contract_address) do
+    with {:ok, abi} <- ABI.get(contract_address) do
       state_from_abi(abi)
     end
   end

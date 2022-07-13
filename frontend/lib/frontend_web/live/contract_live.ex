@@ -1,14 +1,17 @@
-defmodule FrontendWeb.PageLive do
+defmodule FrontendWeb.ContractLive do
   use Phoenix.LiveView
 
   alias Frontend.Contract
   alias Frontend.Method
+  alias EthClient.Rpc
+  alias Frontend.Chain
 
   def render(assigns) do
-    FrontendWeb.PageView.render("form.html", assigns)
+    FrontendWeb.ContractView.render("form.html", assigns)
   end
 
-  def mount(_params, _args, socket) do
+  def mount(_params, %{"config_id" => config_id}, socket) do
+    chain_config = Chain.get_config!(config_id)
     latest_contract = Contract.get_latest()
     contract_address = latest_contract.address
     {:ok, abi} = Jason.decode(latest_contract.abi)
@@ -16,51 +19,43 @@ defmodule FrontendWeb.PageLive do
 
     assigns = [
       conn: socket,
-      account_address: "0xAfB72cCAEB7e22c8A7640F605824B0898424b3Da",
-      private_key: "e90d75baafee04b3d9941bd8d76abe799b391aec596515dee11a9bd55f05709c",
-      chain_id: 5,
-      chain_url: "https://eth-goerli.g.alchemy.com/v2/p-I7_XVkEMtyU--9k8cXeiq7XgwbZlgD",
+      chain_config: chain_config,
       contract_address: contract_address,
       parsed_abi: parsed_abi
     ]
-
-    EthClient.Context.set_chain_id(assigns[:chain_id])
-    EthClient.Context.set_rpc_host(assigns[:chain_url])
-    EthClient.Context.set_contract_address(latest_contract.address)
-
-    EthClient.Context.set_user_account(%EthClient.Account{
-      address: assigns[:account_address],
-      private_key: assigns[:private_key]
-    })
 
     socket = assign(socket, assigns)
 
     {:ok, socket}
   end
 
+  ## Fix this
   def handle_event("deploy_contract", params, socket) do
-    # contract_bin = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.bin"
-    contract_bin = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.bin"
-    # contract_abi = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.abi"
-    contract_abi = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.abi"
+    contract_bin = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.bin"
+    # contract_bin = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.bin"
+    contract_abi = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.abi"
+    # contract_abi = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.abi"
+
+    chain_config = socket.assigns.chain_config
 
     {:ok, file} = File.read(contract_abi)
     {:ok, abi} = Jason.decode(file)
 
     {:ok, parsed_abi} = parse_abi(abi)
 
-    contract =
-      %{address: address, functions: functions} = EthClient.deploy(contract_bin, contract_abi)
+    {:ok, tx_hash} = EthClient.deploy(chain_config, contract_bin)
+
+    {:ok, %{"contractAddress" => contract_address}} =
+      Rpc.wait_for_confirmation(chain_config.rpc_host, tx_hash) |> IO.inspect()
 
     {:ok, _contract} =
       Contract.create(%{
-        address: address,
+        address: contract_address,
         abi: file,
         name: "name"
       })
 
-    socket = assign(socket, :contract_address, address)
-    socket = assign(socket, :contract, contract)
+    socket = assign(socket, :contract_address, contract_address)
     socket = assign(socket, :parsed_abi, parsed_abi)
     {:noreply, socket}
   end
@@ -74,23 +69,27 @@ defmodule FrontendWeb.PageLive do
         %{"method_info" => %{"method" => method_name} = method_params},
         socket
       ) do
+    chain_config = socket.assigns.chain_config
+    contract_address = socket.assigns.contract_address
     method = socket.assigns.parsed_abi[method_name]
-    {:ok, result} = call_or_invoke(method, method_params) |> IO.inspect()
+
+    {:ok, result} =
+      call_or_invoke(chain_config, contract_address, method, method_params) |> IO.inspect()
 
     {:noreply, socket}
   end
 
-  defp call_or_invoke(%{mutability: mutability} = method, params)
+  defp call_or_invoke(chain_config, contract_address, %{mutability: mutability} = method, params)
        when mutability in ["view", "pure"] do
     arguments =
       Enum.map(method.arguments, fn {argument_name, _argument_type} ->
         params[Atom.to_string(argument_name)]
       end)
 
-    Method.call(method, arguments)
+    Method.call(chain_config, contract_address, method, arguments)
   end
 
-  defp call_or_invoke(method, params) do
+  defp call_or_invoke(chain_config, contract_address, method, params) do
     arguments =
       Enum.map(method.arguments, fn {argument_name, argument_type} ->
         params[Atom.to_string(argument_name)] |> parse_argument(argument_type)
@@ -98,19 +97,14 @@ defmodule FrontendWeb.PageLive do
 
     amount = String.to_integer(params["Amount"])
 
-    Method.invoke(method, arguments, amount)
+    Method.invoke(chain_config, contract_address, method, arguments, amount)
   end
 
   defp parse_argument(argument, "uint"), do: String.to_integer(argument)
   defp parse_argument(argument, "uint256"), do: String.to_integer(argument)
+  defp parse_argument("0x" <> argument, "address"), do: Base.decode16!(argument, case: :mixed)
+  defp parse_argument(argument, "address"), do: Base.decode16!(argument, case: :mixed)
   defp parse_argument(argument, _type), do: argument
-
-  ## The context goes away, all transient state is stored in the LiveView process
-  ## Contracts and config are stored in postgres, you can change the state of the liveview process
-  ## by fetching from the database.
-
-  ## This will mean refactoring the EthClient to get rid of the context and maybe
-  ## make a different "CLI" app to use through the command line.
 
   defp parse_abi(abi), do: parse_abi(abi, %{})
 

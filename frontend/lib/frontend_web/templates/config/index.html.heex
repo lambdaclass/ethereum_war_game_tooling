@@ -1,0 +1,33 @@
+<h1>Listing Chain configs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>User address</th>
+      <th>User private key</th>
+      <th>Chain id</th>
+      <th>Rpc host</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for config <- @chain_configs do %>
+    <tr>
+      <td><%= link "Contracts", to: Routes.contract_path(@conn, :index, config.id) %></td>
+      <td><%= config.user_address %></td>
+      <td><%= config.user_private_key %></td>
+      <td><%= config.chain_id %></td>
+      <td><%= config.rpc_host %></td>
+
+      <td>
+        <span><%= link "Show", to: Routes.config_path(@conn, :show, config) %></span>
+        <span><%= link "Edit", to: Routes.config_path(@conn, :edit, config) %></span>
+        <span><%= link "Delete", to: Routes.config_path(@conn, :delete, config), method: :delete, data: [confirm: "Are you sure?"] %></span>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<span><%= link "New Config", to: Routes.config_path(@conn, :new) %></span>

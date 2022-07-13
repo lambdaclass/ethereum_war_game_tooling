@@ -1,0 +1,28 @@
+<h1>Show Config</h1>
+
+<ul>
+
+  <li>
+    <strong>User address:</strong>
+    <%= @config.user_address %>
+  </li>
+
+  <li>
+    <strong>User private key:</strong>
+    <%= @config.user_private_key %>
+  </li>
+
+  <li>
+    <strong>Chain id:</strong>
+    <%= @config.chain_id %>
+  </li>
+
+  <li>
+    <strong>Rpc host:</strong>
+    <%= @config.rpc_host %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: Routes.config_path(@conn, :edit, @config) %></span> |
+<span><%= link "Back", to: Routes.config_path(@conn, :index) %></span>

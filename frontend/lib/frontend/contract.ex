@@ -25,7 +25,7 @@ defmodule Frontend.Contract do
   end
 
   def get_latest do
-    from(c in __MODULE__, limit: 1)
+    from(c in __MODULE__, order_by: [desc: :inserted_at], limit: 1)
     |> Repo.one()
   end
 end

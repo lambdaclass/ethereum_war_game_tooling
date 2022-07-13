@@ -17,7 +17,8 @@ defmodule FrontendWeb.Router do
   scope "/", FrontendWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/contract/:config_id", ContractController, :index
+    resources "/", ConfigController
   end
 
   # Other scopes may use custom stacks.

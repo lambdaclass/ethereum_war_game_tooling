@@ -13,13 +13,13 @@ defmodule Frontend.Method do
     %__MODULE__{name: name, arguments: arguments, mutability: mutability}
   end
 
-  def call(method, args) do
+  def call(chain_config, contract_address, method, args) do
     method_signature = "#{method.name}(#{Enum.join(Keyword.values(method.arguments), ",")})"
-    EthClient.call(method_signature, args)
+    EthClient.call(chain_config, contract_address, method_signature, args)
   end
 
-  def invoke(method, args, amount) do
+  def invoke(chain_config, contract_address, method, args, amount) do
     method_signature = "#{method.name}(#{Enum.join(Keyword.values(method.arguments), ",")})"
-    EthClient.invoke(method_signature, args, amount)
+    EthClient.invoke(chain_config, contract_address, method_signature, args, amount)
   end
 end

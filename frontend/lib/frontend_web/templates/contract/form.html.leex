@@ -1,11 +1,11 @@
 <%= f = form_for :contract, "submit", [phx_change: :contract_change, phx_submit: "deploy_contract", multipart: true] %>
-Address: <%= @account_address %>
+Address: <%= @chain_config.user_address %>
 <br>
-Private Key: <%= @private_key %>
+Private Key: <%= @chain_config.user_private_key %>
 <br>
-Current Chain Id: <%= @chain_id %>
+Current Chain Id: <%= @chain_config.chain_id %>
 <br>
-Current Chain URL: <%= @chain_url %>
+Current Chain URL: <%= @chain_config.rpc_host %>
 <div class="fields">
   <div class="field">
     <%= label f, :contract_bin, "Contract Binary", class: "label" %>
@@ -42,7 +42,7 @@ Current Contract: <%= @contract_address %>
 <%= if method.mutability not in ["view", "pure"] do %>
   <div class="field">
     <%= label fc, :amount, "Amount", class: "label" %>
-    <%= text_input fc, "Amount", class: "input" %>
+    <%= text_input fc, "Amount", class: "input", value: "0" %>
   </div>
 <% end %>
 
