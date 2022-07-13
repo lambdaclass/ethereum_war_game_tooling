@@ -7,10 +7,10 @@ defmodule Frontend.Method do
   # The order of elements in this list is VERY important. It corresponds to the order
   # of the arguments in the method, which matters when we construct the transaction to call it.
   # :mutability is what decides whether it's a `call` or an `invoke`
-  defstruct [:name, :arguments, :mutability]
+  defstruct [:name, :arguments, :mutability, :outputs]
 
-  def new(name, arguments, mutability) do
-    %__MODULE__{name: name, arguments: arguments, mutability: mutability}
+  def new(name, arguments, mutability, outputs) do
+    %__MODULE__{name: name, arguments: arguments, mutability: mutability, outputs: outputs}
   end
 
   def call(chain_config, contract_address, method, args) do

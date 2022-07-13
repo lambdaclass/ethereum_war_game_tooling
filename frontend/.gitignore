@@ -34,3 +34,6 @@ npm-debug.log
 
 # Postgres Docker volume
 docker-data
+
+## Contract file uploads
+/priv/static/uploads

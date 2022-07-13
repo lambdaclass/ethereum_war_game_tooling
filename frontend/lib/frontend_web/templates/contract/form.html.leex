@@ -6,26 +6,38 @@ Private Key: <%= @chain_config.user_private_key %>
 Current Chain Id: <%= @chain_config.chain_id %>
 <br>
 Current Chain URL: <%= @chain_config.rpc_host %>
+<br>
+Balance: <%= @balance %> eth
 <div class="fields">
   <div class="field">
-    <%= label f, :contract_bin, "Contract Binary", class: "label" %>
-    <%= text_input f, :contract_bin, class: "input" %>
-    <%= error_tag f, :contract_bin %>
+    <%= label f, :name, "Contract Name", class: "label" %>
+    <%= text_input f, :name, class: "input", required: true %>
+    <%= error_tag f, :name %>
+  </div>
+
+  <div class="form-group">
+    <label>Contract Binary</label>
+    <%= live_file_input @uploads.contract_bin %>
   </div>
 
   <div class="form-group">
     <label>Contract ABI</label>
-    <%= file_input f, :contract_abi, class: "form-control" %>
+    <%= live_file_input @uploads.contract_abi %>
   </div>
 </div>
+
+
+<%= label f, :contract_name, "Contract", class: "label" %>
+<% default_name = if assigns[:contract] do @contract.name else nil end %>
+<%= select f, :contract_name, contract_options(), prompt: "-- Select --", value: default_name %>
 
 <div class="buttons">
   <%= submit "Deploy Contract", class: "button" %>
 </div>
 </form>
 
-<%= if @contract_address do %>
-Current Contract: <%= @contract_address %>
+<%= if assigns[:contract] do %>
+Current Contract: <%= @contract.address %>
 <%= for {method_name, method} <- @parsed_abi  do %>
 
 <%= fc = form_for :method_info, "submit", [phx_submit: "call_method"] %>

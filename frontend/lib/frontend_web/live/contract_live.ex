@@ -5,36 +5,71 @@ defmodule FrontendWeb.ContractLive do
   alias Frontend.Method
   alias EthClient.Rpc
   alias Frontend.Chain
+  alias ABI.TypeDecoder
+  alias FrontendWeb.Router.Helpers, as: Routes
 
   def render(assigns) do
     FrontendWeb.ContractView.render("form.html", assigns)
   end
 
-  def mount(_params, %{"config_id" => config_id}, socket) do
+  def mount(_params, %{"config_id" => config_id} = params, socket) do
     chain_config = Chain.get_config!(config_id)
-    latest_contract = Contract.get_latest()
-    contract_address = latest_contract.address
-    {:ok, abi} = Jason.decode(latest_contract.abi)
-    {:ok, parsed_abi} = parse_abi(abi)
+
+    ## Fix this
+    contract =
+      if params["contract_id"] do
+        Contract.by_id(params["contract_id"])
+      else
+        Contract.get_latest()
+      end
+
+    ## Fix this
+    parsed_abi =
+      if contract do
+        {:ok, abi} = Jason.decode(contract.abi)
+        {:ok, parsed_abi} = parse_abi(abi)
+        parsed_abi
+      else
+        nil
+      end
 
     assigns = [
       conn: socket,
       chain_config: chain_config,
-      contract_address: contract_address,
+      contract: contract,
       parsed_abi: parsed_abi
     ]
 
     socket = assign(socket, assigns)
+    socket = update_balance(socket, chain_config)
+
+    socket =
+      socket
+      |> assign(:uploaded_files, [])
+      |> allow_upload(:contract_bin, accept: :any, max_entries: 2)
+      |> allow_upload(:contract_abi, accept: :any, max_entries: 2)
 
     {:ok, socket}
   end
 
-  ## Fix this
   def handle_event("deploy_contract", params, socket) do
-    contract_bin = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.bin"
-    # contract_bin = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.bin"
-    contract_abi = "/Users/lambda/Documents/ethereum_playground/eth_client/bin/GameItem.abi"
-    # contract_abi = "/Users/lambda/Documents/ethereum_playground/contracts/src/bin/Storage.abi"
+    [bin_static_path] =
+      consume_uploaded_entries(socket, :contract_bin, fn %{path: path}, _entry ->
+        dest = Path.join([:code.priv_dir(:frontend), "static", "uploads", Path.basename(path)])
+        File.cp!(path, dest)
+        {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
+      end)
+
+    contract_bin = Path.join([:code.priv_dir(:frontend), "static", bin_static_path])
+
+    [abi_static_path] =
+      consume_uploaded_entries(socket, :contract_abi, fn %{path: path}, _entry ->
+        dest = Path.join([:code.priv_dir(:frontend), "static", "uploads", Path.basename(path)])
+        File.cp!(path, dest)
+        {:ok, Routes.static_path(socket, "/uploads/#{Path.basename(dest)}")}
+      end)
+
+    contract_abi = Path.join([:code.priv_dir(:frontend), "static", abi_static_path])
 
     chain_config = socket.assigns.chain_config
 
@@ -46,18 +81,39 @@ defmodule FrontendWeb.ContractLive do
     {:ok, tx_hash} = EthClient.deploy(chain_config, contract_bin)
 
     {:ok, %{"contractAddress" => contract_address}} =
-      Rpc.wait_for_confirmation(chain_config.rpc_host, tx_hash) |> IO.inspect()
+      Rpc.wait_for_confirmation(chain_config.rpc_host, tx_hash)
 
-    {:ok, _contract} =
+    {:ok, contract} =
       Contract.create(%{
         address: contract_address,
         abi: file,
-        name: "name"
+        name: params["contract"]["name"]
       })
 
-    socket = assign(socket, :contract_address, contract_address)
+    socket = assign(socket, :contract, contract)
     socket = assign(socket, :parsed_abi, parsed_abi)
     {:noreply, socket}
+  end
+
+  def handle_event(
+        "contract_change",
+        %{
+          "_target" => ["contract", "contract_name"],
+          "contract" => %{"contract_name" => contract_name}
+        },
+        socket
+      ) do
+    contract = Contract.by_name(contract_name)
+
+    {:ok, abi} = Jason.decode(contract.abi)
+    {:ok, parsed_abi} = parse_abi(abi)
+
+    assigns = [
+      contract_address: contract.address,
+      parsed_abi: parsed_abi
+    ]
+
+    {:noreply, assign(socket, assigns)}
   end
 
   def handle_event("contract_change", _params, socket) do
@@ -70,11 +126,11 @@ defmodule FrontendWeb.ContractLive do
         socket
       ) do
     chain_config = socket.assigns.chain_config
-    contract_address = socket.assigns.contract_address
+    contract = socket.assigns.contract
     method = socket.assigns.parsed_abi[method_name]
 
-    {:ok, result} =
-      call_or_invoke(chain_config, contract_address, method, method_params) |> IO.inspect()
+    {:ok, _result} =
+      call_or_invoke(chain_config, contract.address, method, method_params) |> IO.inspect()
 
     {:noreply, socket}
   end
@@ -86,7 +142,31 @@ defmodule FrontendWeb.ContractLive do
         params[Atom.to_string(argument_name)]
       end)
 
-    Method.call(chain_config, contract_address, method, arguments)
+    {:ok, result_encoded} = Method.call(chain_config, contract_address, method, arguments)
+    ## FIXME: For now I'm assuming there is only one return value; there could be multiple
+    [output_type | _] = Keyword.values(method.outputs)
+    {:ok, decode_result(result_encoded, output_type)}
+  end
+
+  defp decode_result(encoded, "uint"), do: decode_result(encoded, "uint256")
+
+  defp decode_result(encoded, "uint256") do
+    encoded
+    |> String.slice(2..-1)
+    |> Base.decode16!(case: :lower)
+    |> TypeDecoder.decode_raw([{:uint, 256}])
+    |> List.first()
+  end
+
+  defp decode_result(encoded, "string") do
+    encoded
+    |> Base.decode16!(case: :lower)
+    |> TypeDecoder.decode_raw([:string])
+    |> List.first()
+  end
+
+  defp decode_result(encoded, _other) do
+    encoded
   end
 
   defp call_or_invoke(chain_config, contract_address, method, params) do
@@ -116,7 +196,12 @@ defmodule FrontendWeb.ContractLive do
         acc ++ Keyword.new([{String.to_atom(input["name"]), input["internalType"]}])
       end)
 
-    method = Method.new(method_map["name"], arguments, method_map["stateMutability"])
+    outputs =
+      Enum.reduce(method_map["outputs"], [], fn output, acc ->
+        acc ++ Keyword.new([{String.to_atom(output["name"]), output["internalType"]}])
+      end)
+
+    method = Method.new(method_map["name"], arguments, method_map["stateMutability"], outputs)
     acc = Map.put(acc, method_map["name"], method)
 
     parse_abi(tail, acc)
@@ -124,5 +209,11 @@ defmodule FrontendWeb.ContractLive do
 
   defp parse_abi([_head | tail], acc) do
     parse_abi(tail, acc)
+  end
+
+  defp update_balance(socket, chain_config) do
+    {:ok, "0x" <> hex_balance} = Rpc.get_balance(chain_config.rpc_host, chain_config.user_address)
+    {balance, ""} = Integer.parse(hex_balance, 16)
+    assign(socket, :balance, balance / 1_000_000_000_000_000_000)
   end
 end
