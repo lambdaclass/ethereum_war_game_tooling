@@ -3,6 +3,7 @@ defmodule EthClient do
   alias EthClient.Context
   alias EthClient.Contract
   alias EthClient.RawTransaction
+  alias EthClient.NewRawTransaction
   alias EthClient.Rpc
 
   require Logger
@@ -29,18 +30,17 @@ defmodule EthClient do
 
     nonce = nonce(caller.address)
     gas_limit = gas_limit(data, caller_address)
+    max_priority_fee_per_gas = max_priority_fee_per_gas()
+    max_fee_per_gas = max_priority_fee_per_gas()
 
     raw_tx =
-      build_raw_tx(
-        0,
-        nonce,
-        gas_limit,
-        gas_price(),
-        data: data
+      build_raw_tx(nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, 0,
+        data: data,
+        acess_list: []
       )
 
     {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
+      sign_transaction(raw_tx, caller.private_key, 0x2)
       |> Rpc.send_raw_transaction()
 
     Logger.info("Deployment transaction accepted by the network, tx_hash: #{tx_hash}")
@@ -102,17 +102,18 @@ defmodule EthClient do
     amount = floor(amount * 1_000_000_000_000_000_000)
 
     nonce = nonce(caller.address)
-    # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address) * 2
+    gas_limit = gas_limit(data, caller_address)
+    max_priority_fee_per_gas = max_priority_fee_per_gas()
 
     raw_tx =
-      build_raw_tx(amount, nonce, gas_limit, gas_price(),
+      build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, amount,
         recipient: contract_address,
-        data: data
+        data: data,
+        access_list: []
       )
 
     {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
+      sign_transaction(raw_tx, caller.private_key, 0x2)
       |> Rpc.send_raw_transaction()
 
     Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
@@ -189,18 +190,44 @@ defmodule EthClient do
     gas_price
   end
 
+  defp max_priority_fee_per_gas do
+    {max_priority_fee, ""} =
+      Rpc.max_priority_fee_per_gas()
+      |> remove_leading_0x()
+      |> Integer.parse(16)
+
+    max_priority_fee
+  end
+
   defp remove_leading_0x({:ok, "0x" <> data}), do: data
   defp add_0x(data), do: "0x" <> data
 
   defp wei_to_ether(amount), do: amount / 1.0e19
 
-  defp build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
+  defp build_raw_tx(
+         nonce,
+         max_priority_fee_per_gas,
+         max_fee_per_gas,
+         gas_limit,
+         amount,
+         opts
+       ) do
     recipient = opts[:recipient]
     data = opts[:data]
     chain_id = Context.chain_id()
 
-    nonce
-    |> RawTransaction.new(amount, gas_limit, gas_price, chain_id, recipient: recipient, data: data)
+    NewRawTransaction.new(
+      chain_id,
+      nonce,
+      max_priority_fee_per_gas,
+      max_fee_per_gas,
+      gas_limit,
+      recipient,
+      amount,
+      data: data,
+      access_list: []
+    )
+    |> IO.inspect()
     |> ExRLP.encode(encoding: :hex)
   end
 
@@ -211,5 +238,6 @@ defmodule EthClient do
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
-  def sign_transaction(_raw_transaction, _private_key), do: :erlang.nif_error(:nif_not_loaded)
+  def sign_transaction(_raw_transaction, _private_key, _transaction_type),
+    do: :erlang.nif_error(:nif_not_loaded)
 end
