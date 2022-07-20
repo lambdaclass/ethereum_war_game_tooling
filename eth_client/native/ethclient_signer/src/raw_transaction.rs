@@ -7,35 +7,64 @@ extern crate serde_json;
 extern crate tiny_keccak;
 
 use ethereum_types::{H160, H256, U256};
-use num_traits::int;
-use rlp::RlpStream;
+use rlp::{RlpStream, Encodable};
 use secp256k1::{key::SecretKey, Message, Secp256k1};
 use serde_derive::{Deserialize, Serialize};
 use tiny_keccak::{Hasher, Keccak};
+use rlp_derive::{RlpDecodable, RlpEncodable};
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    RlpEncodable,
+    RlpDecodable,
+)]
+pub struct AccessListItem {
+    /// Accessed address
+    pub address: H160,
+    /// Accessed storage keys
+    pub storage_keys: Vec<H256>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    RlpEncodable,
+    RlpDecodable,
+    Default
+)]
+pub struct AccessList(pub Vec<AccessListItem>);
 
 /// Description of a Transaction, pending or in the chain.
-#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize, RlpEncodable, RlpDecodable)]
 pub struct RawTransaction {
+    /// Chain Id
+    pub chain_id: u64,
     /// Nonce
     pub nonce: U256,
+    pub max_priority_fee_per_gas: U256,
+    pub max_fee_per_gas: U256,
     /// Recipient (None when contract creation)
+    pub gas: U256,
     pub to: Option<H160>,
     /// Transferred value
     pub value: U256,
-    /// Gas Price
-    #[serde(rename = "gasPrice")]
-    pub gas_price: U256,
     /// Gas amount
-    pub gas: U256,
     /// Input data
     pub data: Vec<u8>,
+    pub access_list: Option<AccessList>
 }
 
 impl RawTransaction {
-    pub fn sign<T: int::PrimInt>(&self, private_key: &H256, chain_id: &T) -> Vec<u8> {
-        let chain_id_u64: u64 = chain_id.to_u64().unwrap();
-        let hash = self.hash(chain_id_u64);
-        let sig = ecdsa_sign(&hash, &private_key.0, &chain_id_u64);
+    pub fn sign(&self, private_key: &H256, transaction_type: u8) -> Vec<u8> {
+        let hash = self.hash(transaction_type);
+        let sig = ecdsa_sign(&hash, &private_key.0, self.chain_id);
         let mut r_n = sig.r;
         let mut s_n = sig.s;
         while r_n[0] == 0 {
@@ -46,7 +75,8 @@ impl RawTransaction {
         }
         let mut tx = RlpStream::new();
         tx.begin_unbounded_list();
-        self.encode(&mut tx);
+        Encodable::rlp_append(self, &mut tx);
+        // self.encode(&mut tx);
         tx.append(&sig.v);
         tx.append(&r_n);
         tx.append(&s_n);
@@ -54,20 +84,23 @@ impl RawTransaction {
         tx.out().to_vec()
     }
 
-    pub fn hash(&self, chain_id: u64) -> Vec<u8> {
-        let mut hash = RlpStream::new();
-        hash.begin_unbounded_list();
-        self.encode(&mut hash);
-        hash.append(&chain_id.clone());
-        hash.append(&U256::zero());
-        hash.append(&U256::zero());
-        hash.finalize_unbounded_list();
-        keccak256_hash(&hash.out())
+    pub fn hash(&self, transaction_type: u8) -> Vec<u8> {
+        let mut encoded_tx = RlpStream::new();
+        encoded_tx.begin_unbounded_list();
+        self.encode(&mut encoded_tx);
+        encoded_tx.finalize_unbounded_list();
+        let mut encoded_tx_raw = encoded_tx.as_raw().to_vec();
+        let mut to_hash = vec![transaction_type];
+
+        to_hash.append(&mut encoded_tx_raw);
+        keccak256_hash(&to_hash)
     }
 
     pub fn encode(&self, s: &mut RlpStream) {
+        s.append(&self.chain_id);
         s.append(&self.nonce);
-        s.append(&self.gas_price);
+        s.append(&self.max_priority_fee_per_gas);
+        s.append(&self.max_fee_per_gas);
         s.append(&self.gas);
         if let Some(ref t) = self.to {
             s.append(t);
@@ -76,6 +109,7 @@ impl RawTransaction {
         }
         s.append(&self.value);
         s.append(&self.data);
+        s.append(&self.access_list);
     }
 }
 
@@ -87,14 +121,20 @@ fn keccak256_hash(bytes: &[u8]) -> Vec<u8> {
     resp.iter().cloned().collect()
 }
 
-fn ecdsa_sign(hash: &[u8], private_key: &[u8], chain_id: &u64) -> EcdsaSig {
+fn ecdsa_sign(hash: &[u8], private_key: &[u8], chain_id: u64) -> EcdsaSig {
     let s = Secp256k1::signing_only();
     let msg = Message::from_slice(hash).unwrap();
     let key = SecretKey::from_slice(private_key).unwrap();
     let (v, sig_bytes) = s.sign_recoverable(&msg, &key).serialize_compact();
 
+    let v_normalized = if v.to_i32() > 1 {
+        (v.to_i32() as u64) - chain_id * 2 - 35
+    } else {
+        v.to_i32() as u64
+    };
+
     EcdsaSig {
-        v: v.to_i32() as u64 + chain_id * 2 + 35,
+        v: v_normalized,
         r: sig_bytes[0..32].to_vec(),
         s: sig_bytes[32..64].to_vec(),
     }

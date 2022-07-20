@@ -4,31 +4,103 @@ defmodule EthClient.RawTransaction do
   but the RLP library we use handles it already.
   `recipient` is a 160 bits (20 bytes) hash. ExRLP also handles that.
   """
-  @enforce_keys [:nonce, :gas_price, :gas_limit, :amount]
-  defstruct [:nonce, :gas_price, :gas_limit, :recipient, :amount, :data, :chain_id]
+  defstruct [
+    :chain_id,
+    :nonce,
+    :max_priority_fee_per_gas,
+    :max_fee_per_gas,
+    :gas_limit,
+    :recipient,
+    :amount,
+    :data,
+    :access_list
+  ]
 
-  def new(nonce, amount, gas_limit, gas_price, chain_id, opts \\ []) do
+  def new(
+        chain_id,
+        nonce,
+        max_priority_fee_per_gas,
+        max_fee_per_gas,
+        gas_limit,
+        amount,
+        opts \\ []
+      ) do
     recipient = opts[:recipient]
     data = opts[:data]
+    {:ok, parsed_access_list} = parse_access_list(opts[:access_list])
 
     %__MODULE__{
       recipient: parse_recipient(recipient),
       nonce: nonce,
       amount: amount,
       gas_limit: gas_limit,
-      gas_price: gas_price,
+      max_priority_fee_per_gas: max_priority_fee_per_gas,
+      max_fee_per_gas: max_fee_per_gas,
       data: parse_data(data),
-      chain_id: chain_id
+      chain_id: chain_id,
+      access_list: parsed_access_list
     }
   end
 
+  defp parse_access_list(nil), do: {:ok, []}
+
+  defp parse_access_list(access_list) do
+    parse_access_list(access_list, [])
+  end
+
+  #   [
+  #     [
+  #         "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+  #         [
+  #             "0x0000000000000000000000000000000000000000000000000000000000000003",
+  #             "0x0000000000000000000000000000000000000000000000000000000000000007"
+  #         ]
+  #     ],
+  #     [
+  #         "0xbb9bc244d798123fde783fcc1c72d3bb8c189413",
+  #         []
+  #     ]
+  # ]
+
+  # [
+  #   [
+  #     <<175, 183, 44, 202, 235, 126, 34, 200, 167, 100, 15, 96, 88, 36, 176, 137,
+  #       132, 36, 179, 218>>
+  #   ]
+  # ]
+
+  defp parse_access_list([], acc), do: {:ok, acc}
+
+  defp parse_access_list([head | tail], acc) do
+    [address | storage_keys_list] = head
+    # [storage_keys] = storage_keys_list
+    IO.inspect(storage_keys_list)
+
+    address_hex = decode16(address)
+
+    storage_keys_hex =
+      case storage_keys_list do
+        [storage_keys] ->
+          Enum.map(storage_keys, fn storage_key ->
+            decode16(storage_key)
+          end)
+
+        [] ->
+          []
+      end
+
+    acc = List.insert_at(acc, -1, List.insert_at([address_hex], -1, storage_keys_hex))
+    parse_access_list(tail, acc)
+  end
+
   defp parse_recipient(nil), do: []
-  defp parse_recipient("0x" <> recipient), do: Base.decode16!(recipient, case: :mixed)
-  defp parse_recipient(recipient), do: Base.decode16!(recipient, case: :mixed)
+  defp parse_recipient(recipient), do: decode16(recipient)
 
   defp parse_data(nil), do: []
-  defp parse_data("0x" <> data), do: Base.decode16!(data, case: :mixed)
-  defp parse_data(data), do: Base.decode16!(data, case: :mixed)
+  defp parse_data(data), do: decode16(data)
+
+  defp decode16("0x" <> data), do: Base.decode16!(data, case: :mixed)
+  defp decode16(data), do: Base.decode16!(data, case: :mixed)
 
   defimpl ExRLP.Encode, for: EthClient.RawTransaction do
     alias ExRLP.Encode
@@ -42,7 +114,17 @@ defmodule EthClient.RawTransaction do
     defp to_list(raw_transaction) do
       # NOTE: The order of fields here is PARAMOUNT. If you rearrange them
       # the RLP encoding will be incorrect.
-      [:nonce, :gas_price, :gas_limit, :recipient, :amount, :data, :chain_id]
+      [
+        :chain_id,
+        :nonce,
+        :max_priority_fee_per_gas,
+        :max_fee_per_gas,
+        :gas_limit,
+        :recipient,
+        :amount,
+        :data,
+        :access_list
+      ]
       |> Enum.map(fn field ->
         Map.get(raw_transaction, field)
       end)
