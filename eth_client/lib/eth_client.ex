@@ -28,19 +28,21 @@ defmodule EthClient do
     caller_address = String.downcase(caller.address)
 
     nonce = nonce(caller.address)
-    gas_limit = gas_limit(data, caller_address)
+    max_priority_fee_per_gas = max_priority_fee_per_gas()
 
+    access_list = access_list(data, caller_address)
+    gas_limit = gas_limit(data, caller_address, access_list)
+
+    ## TODO: I'm currently passing the `max_priority_fee_per_gas` estimation returned by
+    ## nodes as the `max_fee_per_gas` value. How should `max_fee_per_gas` be actually calculated?
     raw_tx =
-      build_raw_tx(
-        0,
-        nonce,
-        gas_limit,
-        gas_price(),
-        data: data
+      build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, 0,
+        data: data,
+        access_list: access_list
       )
 
     {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
+      sign_transaction(raw_tx, caller.private_key, 0x02)
       |> Rpc.send_raw_transaction()
 
     Logger.info("Deployment transaction accepted by the network, tx_hash: #{tx_hash}")
@@ -101,18 +103,21 @@ defmodule EthClient do
     ## This is assuming the caller passes `amount` in eth
     amount = floor(amount * 1_000_000_000_000_000_000)
 
+    access_list = access_list(data, caller_address, contract_address)
+
     nonce = nonce(caller.address)
-    # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address) * 2
+    gas_limit = gas_limit(data, caller_address, access_list, contract_address)
+    max_priority_fee_per_gas = max_priority_fee_per_gas()
 
     raw_tx =
-      build_raw_tx(amount, nonce, gas_limit, gas_price(),
+      build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, amount,
+        data: data,
         recipient: contract_address,
-        data: data
+        access_list: access_list
       )
 
     {:ok, tx_hash} =
-      sign_transaction(raw_tx, caller.private_key)
+      sign_transaction(raw_tx, caller.private_key, 0x02)
       |> Rpc.send_raw_transaction()
 
     Logger.info("Transaction accepted by the network, tx_hash: #{tx_hash}")
@@ -166,12 +171,13 @@ defmodule EthClient do
     nonce
   end
 
-  defp gas_limit(data, caller_address, recipient_address \\ nil) do
+  defp gas_limit(data, caller_address, access_list, recipient_address \\ nil) do
     {gas, ""} =
       %{
         from: caller_address,
         to: recipient_address,
-        data: data
+        data: data,
+        accessList: access_list_to_json(access_list)
       }
       |> Rpc.estimate_gas()
       |> remove_leading_0x()
@@ -180,13 +186,39 @@ defmodule EthClient do
     gas
   end
 
-  defp gas_price do
-    {gas_price, ""} =
-      Rpc.gas_price()
+  defp access_list(data, caller_address, recipient_address \\ nil) do
+    {:ok, %{"accessList" => access_list_json}} =
+      Rpc.create_access_list(%{
+        from: caller_address,
+        to: recipient_address,
+        data: data
+      })
+
+    access_list_from_json(access_list_json)
+  end
+
+  defp access_list_from_json(access_list_json) do
+    Enum.map(access_list_json, fn %{"address" => address, "storageKeys" => storage_keys} ->
+      [address, storage_keys]
+    end)
+  end
+
+  defp access_list_to_json(access_list) do
+    Enum.map(access_list, fn [address, storage_keys] ->
+      %{
+        "address" => address,
+        "storageKeys" => storage_keys
+      }
+    end)
+  end
+
+  defp max_priority_fee_per_gas() do
+    {max_priority_fee_per_gas, ""} =
+      Rpc.max_priority_fee_per_gas()
       |> remove_leading_0x()
       |> Integer.parse(16)
 
-    gas_price
+    max_priority_fee_per_gas
   end
 
   defp remove_leading_0x({:ok, "0x" <> data}), do: data
@@ -194,13 +226,18 @@ defmodule EthClient do
 
   defp wei_to_ether(amount), do: amount / 1.0e19
 
-  defp build_raw_tx(amount, nonce, gas_limit, gas_price, opts) do
-    recipient = opts[:recipient]
-    data = opts[:data]
+  defp build_raw_tx(nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, amount, opts) do
     chain_id = Context.chain_id()
 
-    nonce
-    |> RawTransaction.new(amount, gas_limit, gas_price, chain_id, recipient: recipient, data: data)
+    RawTransaction.new(
+      chain_id,
+      nonce,
+      max_priority_fee_per_gas,
+      max_fee_per_gas,
+      gas_limit,
+      amount,
+      opts
+    )
     |> ExRLP.encode(encoding: :hex)
   end
 
@@ -211,5 +248,6 @@ defmodule EthClient do
 
   use Rustler, otp_app: :eth_client, crate: "ethclient_signer"
 
-  def sign_transaction(_raw_transaction, _private_key), do: :erlang.nif_error(:nif_not_loaded)
+  def sign_transaction(_raw_transaction, _private_key, _transaction_type),
+    do: :erlang.nif_error(:nif_not_loaded)
 end

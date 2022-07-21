@@ -15,6 +15,11 @@ defmodule EthClient.Rpc do
     do: send_request("eth_getTransactionCount", [address, "latest"])
 
   def gas_price, do: send_request("eth_gasPrice", [])
+
+  def create_access_list(transaction_map),
+    do: send_request("eth_createAccessList", [transaction_map])
+
+  def max_priority_fee_per_gas, do: send_request("eth_maxPriorityFeePerGas", [])
   def get_transaction_by_hash(tx_hash), do: send_request("eth_getTransactionByHash", [tx_hash])
   def get_transaction_receipt(tx_hash), do: send_request("eth_getTransactionReceipt", [tx_hash])
 
