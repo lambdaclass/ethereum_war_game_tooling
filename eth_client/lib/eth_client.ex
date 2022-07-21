@@ -27,11 +27,11 @@ defmodule EthClient do
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
 
-    access_list = []
-
     nonce = nonce(caller.address)
-    gas_limit = gas_limit(data, caller_address, access_list)
     max_priority_fee_per_gas = max_priority_fee_per_gas()
+
+    access_list = access_list(data, caller_address)
+    gas_limit = gas_limit(data, caller_address, access_list)
 
     raw_tx =
       build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, 0,
@@ -101,8 +101,7 @@ defmodule EthClient do
     ## This is assuming the caller passes `amount` in eth
     amount = floor(amount * 1_000_000_000_000_000_000)
 
-    ## Measure this, I don't actually know if this is more or less expensive than just passing []
-    access_list = [[caller_address, []], [contract_address, []]]
+    access_list = access_list(data, caller_address, contract_address)
 
     nonce = nonce(caller.address)
     gas_limit = gas_limit(data, caller_address, access_list, contract_address)
@@ -183,6 +182,23 @@ defmodule EthClient do
       |> Integer.parse(16)
 
     gas
+  end
+
+  defp access_list(data, caller_address, recipient_address \\ nil) do
+    {:ok, %{"accessList" => access_list_json}} =
+      Rpc.create_access_list(%{
+        from: caller_address,
+        to: recipient_address,
+        data: data
+      })
+
+    access_list_from_json(access_list_json)
+  end
+
+  defp access_list_from_json(access_list_json) do
+    Enum.map(access_list_json, fn %{"address" => address, "storageKeys" => storage_keys} ->
+      [address, storage_keys]
+    end)
   end
 
   defp access_list_to_json(access_list) do
