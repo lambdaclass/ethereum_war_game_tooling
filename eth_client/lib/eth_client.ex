@@ -33,6 +33,8 @@ defmodule EthClient do
     access_list = access_list(data, caller_address)
     gas_limit = gas_limit(data, caller_address, access_list)
 
+    ## TODO: I'm currently passing the `max_priority_fee_per_gas` estimation returned by
+    ## nodes as the `max_fee_per_gas` value. How should `max_fee_per_gas` be actually calculated?
     raw_tx =
       build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, 0,
         data: data,
