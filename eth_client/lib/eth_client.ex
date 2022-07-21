@@ -27,14 +27,16 @@ defmodule EthClient do
     caller = Context.user_account()
     caller_address = String.downcase(caller.address)
 
+    access_list = []
+
     nonce = nonce(caller.address)
-    gas_limit = gas_limit(data, caller_address)
+    gas_limit = gas_limit(data, caller_address, access_list)
     max_priority_fee_per_gas = max_priority_fee_per_gas()
 
     raw_tx =
       build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, 0,
         data: data,
-        access_list: []
+        access_list: access_list
       )
 
     {:ok, tx_hash} =
@@ -99,15 +101,18 @@ defmodule EthClient do
     ## This is assuming the caller passes `amount` in eth
     amount = floor(amount * 1_000_000_000_000_000_000)
 
+    ## Measure this, I don't actually know if this is more or less expensive than just passing []
+    access_list = [[caller_address, []], [contract_address, []]]
+
     nonce = nonce(caller.address)
-    # How do I calculate gas limits appropiately?
-    gas_limit = gas_limit(data, caller_address, contract_address)
+    gas_limit = gas_limit(data, caller_address, access_list, contract_address)
     max_priority_fee_per_gas = max_priority_fee_per_gas()
 
     raw_tx =
       build_raw_tx(nonce, max_priority_fee_per_gas, max_priority_fee_per_gas, gas_limit, amount,
         data: data,
-        recipient: contract_address
+        recipient: contract_address,
+        access_list: access_list
       )
 
     {:ok, tx_hash} =
@@ -165,18 +170,28 @@ defmodule EthClient do
     nonce
   end
 
-  defp gas_limit(data, caller_address, recipient_address \\ nil) do
+  defp gas_limit(data, caller_address, access_list, recipient_address \\ nil) do
     {gas, ""} =
       %{
         from: caller_address,
         to: recipient_address,
-        data: data
+        data: data,
+        accessList: access_list_to_json(access_list)
       }
       |> Rpc.estimate_gas()
       |> remove_leading_0x()
       |> Integer.parse(16)
 
     gas
+  end
+
+  defp access_list_to_json(access_list) do
+    Enum.map(access_list, fn [address, storage_keys] ->
+      %{
+        "address" => address,
+        "storageKeys" => storage_keys
+      }
+    end)
   end
 
   defp max_priority_fee_per_gas() do
