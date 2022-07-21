@@ -48,34 +48,10 @@ defmodule EthClient.RawTransaction do
     parse_access_list(access_list, [])
   end
 
-  #   [
-  #     [
-  #         "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
-  #         [
-  #             "0x0000000000000000000000000000000000000000000000000000000000000003",
-  #             "0x0000000000000000000000000000000000000000000000000000000000000007"
-  #         ]
-  #     ],
-  #     [
-  #         "0xbb9bc244d798123fde783fcc1c72d3bb8c189413",
-  #         []
-  #     ]
-  # ]
-
-  # [
-  #   [
-  #     <<175, 183, 44, 202, 235, 126, 34, 200, 167, 100, 15, 96, 88, 36, 176, 137,
-  #       132, 36, 179, 218>>
-  #   ]
-  # ]
-
   defp parse_access_list([], acc), do: {:ok, acc}
 
   defp parse_access_list([head | tail], acc) do
     [address | storage_keys_list] = head
-    # [storage_keys] = storage_keys_list
-    IO.inspect(storage_keys_list)
-
     address_hex = decode16(address)
 
     storage_keys_hex =

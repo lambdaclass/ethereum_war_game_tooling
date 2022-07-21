@@ -7,11 +7,11 @@ extern crate serde_json;
 extern crate tiny_keccak;
 
 use ethereum_types::{H160, H256, U256};
-use rlp::{RlpStream, Encodable};
+use rlp::{RlpStream};
 use secp256k1::{key::SecretKey, Message, Secp256k1};
 use serde_derive::{Deserialize, Serialize};
 use tiny_keccak::{Hasher, Keccak};
-use rlp_derive::{RlpDecodable, RlpEncodable};
+use rlp_derive::{RlpEncodable, RlpDecodable, RlpDecodableWrapper, RlpEncodableWrapper};
 
 #[derive(
     Debug,
@@ -19,8 +19,8 @@ use rlp_derive::{RlpDecodable, RlpEncodable};
     PartialEq,
     Deserialize,
     Serialize,
-    RlpEncodable,
     RlpDecodable,
+    RlpEncodable,
 )]
 pub struct AccessListItem {
     /// Accessed address
@@ -35,8 +35,8 @@ pub struct AccessListItem {
     PartialEq,
     Deserialize,
     Serialize,
-    RlpEncodable,
-    RlpDecodable,
+    RlpEncodableWrapper,
+    RlpDecodableWrapper,
     Default
 )]
 pub struct AccessList(pub Vec<AccessListItem>);
@@ -75,8 +75,7 @@ impl RawTransaction {
         }
         let mut tx = RlpStream::new();
         tx.begin_unbounded_list();
-        Encodable::rlp_append(self, &mut tx);
-        // self.encode(&mut tx);
+        self.encode(&mut tx);
         tx.append(&sig.v);
         tx.append(&r_n);
         tx.append(&s_n);
@@ -109,7 +108,11 @@ impl RawTransaction {
         }
         s.append(&self.value);
         s.append(&self.data);
-        s.append(&self.access_list);
+        if let Some(ref t) = self.access_list {
+            s.append(t);
+        } else {
+            s.append_list::<AccessList, AccessList>(&vec![]);
+        }
     }
 }
 

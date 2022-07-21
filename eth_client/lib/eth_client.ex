@@ -205,7 +205,6 @@ defmodule EthClient do
       amount,
       opts
     )
-    |> IO.inspect()
     |> ExRLP.encode(encoding: :hex)
   end
 
